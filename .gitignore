@@ -1,0 +1,45 @@
+# 환경 변수 파일
+.env
+
+# 히스토리 파일
+sw_notice_history.json
+
+# Python 관련
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+.python-version
+
+# 가상환경
+venv/
+envs/
+
+# IDE 관련
+.idea/
+.vscode/
+*.swp
+*.swo 
+
+channel_config.json
+
+test.py
+mongo.py
+*.txt
+*.html
