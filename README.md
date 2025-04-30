@@ -1,125 +1,69 @@
-# 국민대학교 공지사항 알리미 봇
+# 국민대학교 피드 크롤링 서버
 
-디스코드를 통해 국민대학교의 각 학과/단과대학의 공지사항을 실시간으로 전달하는 봇입니다.
+이 프로젝트는 국민대학교의 공지사항, RSS 피드, 공모전 정보를 크롤링하여 새로운 공지사항을 확인하고 데이터베이스에 저장하는 서버입니다.
 
-## 기능
+## 주요 기능
 
-- 실시간 공지사항 알림
-  - 소프트웨어학부
-    - 대학 학사공지
-    - 대학 장학공지
-    - 소융대 학사공지 (RSS)
-    - SW중심대학사업단 학사공지
-  - 경영대학
-    - 경영대 학사공지 (RSS)
-  - 건축대학
-    - 건축대 학사공지
-  - 사회과학대학
-    - 행정학과 학사공지
-  - 창의공과대학
-    - 기계공학부 학사공지
-    - 전자공학부 학사공지 (RSS)
-  - 조형대학
-    - 공업디자인학과 학사공지
-    - 금속공예학과 학사공지
-    - 시각디자인학과 학사공지
-  - 자동차융합대학
-    - 자동차융합대학 학사공지
-  - 기타
-    - LINC 3.0 사업단 학사공지
-- 디스코드 채널 또는 DM으로 알림 수신
-- 공지사항 종류별 구독 관리
-- 개발 환경별 설정 (개발/운영)
+- **공지사항 크롤링**: 다양한 소스(예: RSS 피드, 웹사이트)에서 공지사항을 수집합니다.
+- **중복 확인**: 기존 데이터와 비교하여 새로운 공지사항만 저장합니다.
+- **데이터베이스 관리**: MongoDB를 사용하여 공지사항 데이터를 저장 및 관리합니다.
+- **로깅**: 크롤링 및 데이터 처리 과정에서 발생하는 이벤트를 로깅합니다.
 
-## 설치 방법
+## 기술 스택
 
-1. 필요한 패키지 설치
+- **언어**: Python
+- **웹 크롤링**: BeautifulSoup, feedparser
+- **비동기 처리**: asyncio
+- **데이터베이스**: MongoDB
+- **로깅**: Python `logging` 모듈
+- **환경 변수 관리**: `.env` 파일
+
+## 설치 및 실행
+
+### 1. 의존성 설치
+
 ```bash
 pip install -r requirements.txt
 ```
 
-2. 환경 설정 파일 구성
-- 운영 환경: `.env` (프로젝트 루트)
-- 개발 환경: `envs/.dev.env`
+### 2. 환경 변수 설정
 
-```env
-# 필수 환경 변수
-DISCORD_TOKEN=your_discord_bot_token
-MONGODB_URI=your_mongodb_connection_string
-DB_NAME=your_database_name
-YOUTUBE_API_KEY=your_youtube_api_key
-```
-
-## 프로젝트 구조
+`.env` 파일을 생성하고 다음과 같은 환경 변수를 설정하세요:
 
 ```
-.
-├── config/
-│   ├── env_loader.py           # 환경 설정 로더
-│   ├── db_config.py             # 데이터베이스 설정
-│   └── logger_config.py         # 로깅 설정
-├── discord_bot/
-│   ├── discord_bot.py          # 디스코드 봇 코어
-│   ├── scraper_config.py       # 스크래퍼 설정
-│   └── commands/               # 디스코드 명령어
-│       ├── register.py         # 공지 등록 명령어
-│       └── test.py             # 테스트 명령어
-├── template/
-│   └── notice_data.py          # 공지사항 데이터 모델
-├── utils/
-│   ├── scraper_type.py        # 스크래퍼 타입 정의
-│   ├── scraper_factory.py     # 스크래퍼 생성 팩토리
-│   ├── scraper_category.py    # 스크래퍼 카테고리 정의
-│   ├── web_scraper.py         # 웹 스크래퍼 슈퍼 클래스
-│   └── rss_notice_scraper.py  # RSS 스크래퍼 클래스
-└── main.py                     # 프로그램 진입점
+IS_PROD=True
+MONGO_URI=mongodb://localhost:27017
 ```
 
-## 데이터베이스 구조
+### 3. 데이터베이스 초기화
 
-### MongoDB 컬렉션
+스크래퍼 메타데이터를 초기화하려면 다음 명령어를 실행하세요:
 
-- 컬렉션명: 각 스크래퍼 타입의 `collection_name`
-- 문서 구조:
-  - `title`: 공지사항 제목
-  - `link`: 공지사항 링크
-  - `published`: 작성일 (ISO 형식)
-  - `scraper_type`: 스크래퍼 타입 식별자
+```bash
+python -m utils.check_new_scraper
+```
 
-## 개발 정보
+### 4. 서버 실행
 
-### 환경 구분
-- 운영(PROD): Ubuntu 환경
-- 개발(DEV): 그 외 환경
+```bash
+python main.py
+```
 
-### 크롤링 주기
-- 운영 환경: 10분
-- 개발 환경: 2분
+## 주요 파일 설명
 
-## 디스코드 명령어
+- **`main.py`**: 서버의 진입점으로, 크롤링 작업을 관리합니다.
+- **`utils/web_scraper.py`**: 웹 스크래퍼의 추상 클래스 및 공통 로직을 정의합니다.
+- **`web_scraper/rss_notice_scraper.py`**: RSS 피드에서 공지사항을 크롤링하는 클래스입니다.
+- **`config/logger_config.py`**: 로깅 설정을 관리합니다.
+- **`config/db_config.py`**: MongoDB 연결 및 데이터베이스 작업을 처리합니다.
 
-- `/게시판_선택`: 공지사항 알림 등록
-- `/게시판_선택취소`: 공지사항 알림 삭제
-- `/선택된_게시판`: 현재 등록된 알림 목록 확인
-- `/testnotice`: 테스트 공지사항 전송 (개발 환경 전용)
-- `/test-list`: 등록된 채널/유저 목록 확인 (개발 환경 전용)
+## 사용법
 
-## 주의사항
+1. 서버를 실행하면 설정된 간격(`INTERVAL`)으로 크롤링 작업이 수행됩니다.
+2. 새로운 공지사항이 발견되면 데이터베이스에 저장됩니다.
+3. 로그를 통해 크롤링 상태를 확인할 수 있습니다.
 
-- 환경 변수 파일 보안 관리 (.env, .dev.env)
-- MongoDB 연결 정보 보안
-- 크롤링 간격 조절 시 서버 부하 고려
-- 봇 권한 확인 (메시지 전송, 임베드 등)
-- 운영 환경과 개발 환경의 설정 차이 주의
+## 개발 및 테스트
 
-## 라이선스
-
-MIT License
-
-## 기여하기
-
-1. Fork the Project
-2. Create your Feature Branch
-3. Commit your Changes
-4. Push to the Branch
-5. Open a Pull Request
+- **테스트 환경**: 개발 환경에서는 `INTERVAL`이 짧게 설정되어 빠르게 테스트할 수 있습니다.
+- **로깅**: 개발 환경에서는 DEBUG 레벨의 로그를 출력합니다.
