@@ -45,3 +45,4 @@ mongo.py
 *.txt
 *.html
 node_modules
+.serverless/
