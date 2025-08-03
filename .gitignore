@@ -1,5 +1,6 @@
 # 환경 변수 파일
 .env
+envs/
 
 # 히스토리 파일
 sw_notice_history.json
@@ -43,3 +44,4 @@ test.py
 mongo.py
 *.txt
 *.html
+node_modules
