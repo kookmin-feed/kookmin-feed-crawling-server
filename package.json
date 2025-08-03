@@ -1,0 +1,23 @@
+{
+    "name": "kookmin-feed-crawling-server",
+    "version": "1.0.0",
+    "description": "Kookmin Feed Crawling Server with Serverless Architecture",
+    "scripts": {
+        "deploy": "serverless deploy --stage dev",
+        "deploy:dev": "serverless deploy --stage dev",
+        "deploy:prod": "serverless deploy --stage prod",
+        "remove": "serverless remove",
+        "remove:dev": "serverless remove --stage dev",
+        "remove:prod": "serverless remove --stage prod",
+        "logs": "serverless logs -f master --stage dev",
+        "logs:dev": "serverless logs -f master --stage dev",
+        "logs:prod": "serverless logs -f master --stage prod",
+        "invoke": "serverless invoke -f master --stage dev",
+        "invoke:dev": "serverless invoke -f master --stage dev",
+        "invoke:prod": "serverless invoke -f master --stage prod"
+    },
+    "devDependencies": {
+        "serverless": "^3.38.0",
+        "serverless-python-requirements": "^6.0.0"
+    }
+}
