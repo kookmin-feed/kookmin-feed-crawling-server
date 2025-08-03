@@ -1,0 +1,32 @@
+service: kookmin-feed-crawling-server
+
+provider:
+  name: aws
+  runtime: python3.11
+  region: ap-northeast-2
+  profile: kookmin-feed
+  timeout: 60
+  memorySize: 512
+  environment:
+    MONGODB_URI: 'mongodb+srv://admin:rkd0520@devkookminfeed.wyf6p.mongodb.net/'
+    MONGODB_DATABASE: 'dev-kookmin-feed'
+    IS_PROD: 'false'
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action: "*"
+          Resource: "*"
+
+package:
+  patterns:
+    - '!**'
+    - 'master_handler.py'
+    
+functions:
+  master:
+    handler: master_handler.handler
+    events:
+      - schedule:
+          rate: rate(1 hour)
+          enabled: true
