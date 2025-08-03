@@ -12,15 +12,17 @@ from utils.check_new_scraper import run_check_new_scraper
 if ENV["IS_PROD"]:
     INTERVAL = 10
 else:
-    INTERVAL = 2
+    INTERVAL = 5
 
 print(f"INTERVAL: {INTERVAL}")
+
 
 async def process_new_notices(notices, scraper_type: ScraperType):
     """새로운 공지사항을 처리합니다."""
     for notice in notices:
         # DB에 저장
         await save_notice(notice, scraper_type)
+
 
 def is_working_hour():
     """현재 시간이 작동 시간(월~토 8시~20시)인지 확인합니다."""
@@ -57,7 +59,9 @@ async def check_all_notices():
                         # 스크래퍼 생성
                         scraper = ScraperFactory().create_scraper(scraper_type)
                         if not scraper:
-                            logger.error(f"지원하지 않는 스크래퍼 타입: {scraper_type.name}")
+                            logger.error(
+                                f"지원하지 않는 스크래퍼 타입: {scraper_type.name}"
+                            )
                             continue
 
                         # 공지사항 확인 및 처리
@@ -66,7 +70,8 @@ async def check_all_notices():
 
                     except Exception as e:
                         logger.error(
-                            f"{scraper_type.get_korean_name()} 스크래핑 중 오류 발생: {e}")
+                            f"{scraper_type.get_korean_name()} 스크래핑 중 오류 발생: {e}"
+                        )
                         continue
 
         except Exception as e:
@@ -107,6 +112,7 @@ async def main():
         await check_all_notices_task  # 태스크가 안전하게 종료되도록 대기
         close_database()
         await asyncio.get_event_loop().shutdown_asyncgens()
+
 
 if __name__ == "__main__":
     logger = setup_logger(__name__)
