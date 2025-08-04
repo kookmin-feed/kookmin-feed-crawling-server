@@ -7,26 +7,104 @@ provider:
   profile: kookmin-feed
   timeout: 60
   memorySize: 512
-  environment:
-    MONGODB_URI: 'mongodb+srv://admin:rkd0520@devkookminfeed.wyf6p.mongodb.net/'
-    MONGODB_DATABASE: 'dev-kookmin-feed'
-    IS_PROD: 'false'
   iam:
     role:
       statements:
         - Effect: Allow
           Action: "*"
           Resource: "*"
+  # 공통 환경변수 설정
+  environment:
+    MONGODB_URI: ${file(envs/config.${self:provider.stage, 'dev'}.json):MONGODB_URI}
+    DB_NAME: ${file(envs/config.${self:provider.stage, 'dev'}.json):DB_NAME}
 
+# 패키지 설정
 package:
-  patterns:
-    - '!**'
-    - 'master_handler.py'
-    
+  individually: true
+
+# 공통 의존성 레이어 정의
+layers:
+  ScraperDependencies:
+    path: layer
+    name: scraper-dependencies
+    description: "웹 스크래퍼용 공통 Python 의존성 (bs4, aiohttp, pymongo, pytz, feedparser)"
+    compatibleRuntimes:
+      - python3.11
+
 functions:
+  # Master 함수 - 레이어 사용하여 DB 저장 기능 포함
   master:
+    name: master
     handler: master_handler.handler
+    package:
+      patterns:
+        - '!**'
+        - 'metadata/scraper_categories.json'
+        - 'metadata/scraper_types.json'
+        - 'master_handler.py'
+    layers:
+      - { Ref: ScraperDependenciesLambdaLayer }
     events:
       - schedule:
-          rate: rate(1 hour)
+          rate: rate(1 minute)
           enabled: true
+
+  # University Academic 스크래퍼 - 레이어 사용, Master에 의해서만 호출
+  university_academic_scraper:
+    name: university_academic_scraper
+    handler: lambda_web_scraper.university_academic_handler.handler
+    layers:
+      - { Ref: ScraperDependenciesLambdaLayer }
+    package:
+      patterns:
+        - '!**'
+        - 'common_utils.py'
+        - 'lambda_web_scraper/university_academic_handler.py'
+
+  # Business Administration Academic RSS 스크래퍼 - 레이어 사용, Master에 의해서만 호출
+  businessadministration_academic_rss_scraper:
+    name: businessadministration_academic_rss_scraper
+    handler: lambda_web_scraper.businessadministration_academic_rss_handler.handler
+    layers:
+      - { Ref: ScraperDependenciesLambdaLayer }
+    package:
+      patterns:
+        - '!**'
+        - 'common_utils.py'
+        - 'lambda_web_scraper/businessadministration_academic_rss_handler.py'
+
+  # University Special Lecture 스크래퍼 - 레이어 사용, Master에 의해서만 호출
+  university_speciallecture_scraper:
+    name: university_speciallecture_scraper
+    handler: lambda_web_scraper.university_speciallecture_handler.handler
+    layers:
+      - { Ref: ScraperDependenciesLambdaLayer }
+    package:
+      patterns:
+        - '!**'
+        - 'common_utils.py'
+        - 'lambda_web_scraper/university_speciallecture_handler.py'
+
+  # University Scholarship 스크래퍼 - 레이어 사용, Master에 의해서만 호출
+  university_scholarship_scraper:
+    name: university_scholarship_scraper
+    handler: lambda_web_scraper.university_scholarship_handler.handler
+    layers:
+      - { Ref: ScraperDependenciesLambdaLayer }
+    package:
+      patterns:
+        - '!**'
+        - 'common_utils.py'
+        - 'lambda_web_scraper/university_scholarship_handler.py'
+
+  # University Contest Event 스크래퍼 - 레이어 사용, Master에 의해서만 호출
+  university_contestevent_scraper:
+    name: university_contestevent_scraper
+    handler: lambda_web_scraper.university_contestevent_handler.handler
+    layers:
+      - { Ref: ScraperDependenciesLambdaLayer }
+    package:
+      patterns:
+        - '!**'
+        - 'common_utils.py'
+        - 'lambda_web_scraper/university_contestevent_handler.py'
