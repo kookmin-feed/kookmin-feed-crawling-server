@@ -46,3 +46,9 @@ mongo.py
 *.html
 node_modules
 .serverless/
+layer/
+
+config.dev.json
+config.prod.json
+
+legacy_web_scraper/
