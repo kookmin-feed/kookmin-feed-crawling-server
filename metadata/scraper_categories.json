@@ -1,0 +1,134 @@
+{
+    "scraper_categories": {
+        "UNIVERSITY_CATEGORY": {
+            "korean_name": "국민대",
+            "scraper_types": [
+                "university_academic",
+                "university_scholarship",
+                "university_speciallecture",
+                "university_contestevent"
+            ]
+        },
+        "COMPUTERSCIENCE_CATEGORY": {
+            "korean_name": "소프트웨어융합대학",
+            "scraper_types": [
+                "computerscience_academic_rss",
+                "softwarecentered_academic"
+            ]
+        },
+        "BUSINESSADMINISTRATION_CATEGORY": {
+            "korean_name": "경영대학",
+            "scraper_types": [
+                "businessadministration_academic_rss"
+            ]
+        },
+        "ARCHITECTURE_CATEGORY": {
+            "korean_name": "건축대학",
+            "scraper_types": [
+                "architecture_academic"
+            ]
+        },
+        "SOCIALSCIENCE_CATEGORY": {
+            "korean_name": "사회과학대학",
+            "scraper_types": [
+                "socialscience_academic",
+                "socialscience_publicadministration_academic",
+                "socialscience_education_academic",
+                "socialscience_politicalscience_academic",
+                "socialscience_sociology_academic",
+                "socialscience_communication_media_academic",
+                "socialscience_communication_advertising_academic"
+            ]
+        },
+        "CREATIVEENGINEERING_CATEGORY": {
+            "korean_name": "창의공과대학",
+            "scraper_types": [
+                "creativeengineering_academic_rss",
+                "creativeengineering_mechanical_academic",
+                "creativeengineering_electrical_academic_rss",
+                "creativeengineering_advancedmaterials_academic",
+                "creativeengineering_civil_academic"
+            ]
+        },
+        "DESIGN_CATEGORY": {
+            "korean_name": "조형대학",
+            "scraper_types": [
+                "design_industrial_academic",
+                "design_visual_academic",
+                "design_metalwork_academic",
+                "design_automotive_academic",
+                "design_ceramics_academic"
+            ]
+        },
+        "OTHERS_CATEGORY": {
+            "korean_name": "사업단 및 부속기관",
+            "scraper_types": [
+                "linc_academic",
+                "dormitory_general_rss",
+                "nccoss_general"
+            ]
+        },
+        "AUTOMOTIVEENGINEERING_CATEGORY": {
+            "korean_name": "자동차융합대학",
+            "scraper_types": [
+                "automativeengineering_academic",
+                "coss_academic",
+                "futuremobility_academic"
+            ]
+        },
+        "LAW_CATEGORY": {
+            "korean_name": "법과대학",
+            "scraper_types": [
+                "law_academic"
+            ]
+        },
+        "SCIENCETECHNOLOGY_CATEGORY": {
+            "korean_name": "과학기술대학",
+            "scraper_types": [
+                "sciencetechnology_chemistry_academic",
+                "sciencetechnology_security_academic"
+            ]
+        },
+        "ECONOMICCOMMERCE_CATEGORY": {
+            "korean_name": "경상대학",
+            "scraper_types": [
+                "economiccommerce_academic_rss"
+            ]
+        },
+        "CULTURE_CATEGORY": {
+            "korean_name": "교양대학",
+            "scraper_types": [
+                "culture_academic_rss"
+            ]
+        },
+        "TEACHING_CATEGORY": {
+            "korean_name": "교직과정부",
+            "scraper_types": [
+                "teaching_academic_rss"
+            ]
+        },
+        "ARTS_CATEGORY": {
+            "korean_name": "예술대학",
+            "scraper_types": [
+                "arts_academic"
+            ]
+        },
+        "PHYSICALEDUCATION_CATEGORY": {
+            "korean_name": "체육대학",
+            "scraper_types": [
+                "physicaleducation_academic"
+            ]
+        },
+        "GLOBALHUMANITIES_CATEGORY": {
+            "korean_name": "글로벌인문지역대학",
+            "scraper_types": [
+                "globalhumanities_academic_rss",
+                "globalhumanities_korean_academic_rss",
+                "globalhumanities_koreanhistory_academic_rss",
+                "globalhumanities_english_academic_rss",
+                "globalhumanities_chinese_academic_rss",
+                "globalhumanities_eurasian_academic"
+            ]
+        }
+    }
+}
