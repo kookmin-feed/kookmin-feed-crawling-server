@@ -1,5 +1,5 @@
 import json
-import asyncio
+
 from datetime import datetime, timedelta
 import pytz
 from typing import Dict, Any
@@ -20,14 +20,8 @@ def handler(event, context):
     print("🚀 [HANDLER] Lambda Handler 시작")
 
     try:
-        # 비동기 스크래퍼 실행
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-
-        try:
-            result = loop.run_until_complete(scrape_university_speciallecture())
-        finally:
-            loop.close()
+        # 동기 스크래퍼 실행
+        result = scrape_university_speciallecture()
 
         return {
             "statusCode": 200,
@@ -44,7 +38,7 @@ def handler(event, context):
         }
 
 
-async def scrape_university_speciallecture() -> Dict[str, Any]:
+def scrape_university_speciallecture() -> Dict[str, Any]:
     """
     대학 특강공지를 스크래핑하고 새로운 공지사항을 처리
     """
@@ -56,10 +50,7 @@ async def scrape_university_speciallecture() -> Dict[str, Any]:
 
     try:
         # 웹페이지 가져오기
-        soup = await fetch_page(url)
-        if not soup:
-            print("❌ [SCRAPER] 웹페이지 가져오기 실패")
-            return {"success": False, "error": "웹페이지를 가져올 수 없습니다"}
+        soup = fetch_page(url)
 
         # 공지사항 목록 요소들 가져오기
         elements = soup.select(".list-tbody .normal-bg, .list-tbody .notice-bg")

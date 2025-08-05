@@ -1,5 +1,5 @@
 import json
-import asyncio
+
 import re
 from datetime import datetime, timedelta
 import pytz
@@ -22,18 +22,12 @@ def handler(event, context):
     print("🚀 [HANDLER] Lambda Handler 시작")
 
     try:
-        # 비동기 스크래퍼 실행
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-
-        try:
-            result = loop.run_until_complete(scrape_coss_academic())
-        finally:
-            loop.close()
+        # 동기 스크래퍼 실행
+        result = scrape_coss_academic()
 
         return {
             "statusCode": 200,
-            # "body": json.dumps(result, ensure_ascii=False, default=str),
+            "body": json.dumps(result, ensure_ascii=False, default=str),
         }
 
     except Exception as e:
@@ -46,7 +40,7 @@ def handler(event, context):
         }
 
 
-async def scrape_coss_academic() -> Dict[str, Any]:
+def scrape_coss_academic() -> Dict[str, Any]:
     """
     미래자동차사업단 학사공지를 스크래핑하고 새로운 공지사항을 처리
     """
@@ -58,10 +52,7 @@ async def scrape_coss_academic() -> Dict[str, Any]:
 
     try:
         # 웹페이지 가져오기
-        soup = await fetch_page(url)
-        if not soup:
-            print("❌ [SCRAPER] 웹페이지 가져오기 실패")
-            return {"success": False, "error": "웹페이지를 가져올 수 없습니다"}
+        soup = fetch_page(url)
 
         # 공지사항 목록 요소들 가져오기
         elements = soup.select("tbody tr")
@@ -167,7 +158,9 @@ def parse_notice_from_element(element, kst, base_url) -> Dict[str, Any]:
         if date_match:
             year, month, day = date_match.groups()
             year = "20" + year
-            published = datetime.strptime(f"{year}-{month}-{day}", "%Y-%m-%d").replace(tzinfo=kst)
+            published = datetime.strptime(f"{year}-{month}-{day}", "%Y-%m-%d").replace(
+                tzinfo=kst
+            )
         else:
             print(f"❌ [PARSE] 날짜 형식 변환 실패: {date_text}")
             return None
@@ -184,4 +177,4 @@ def parse_notice_from_element(element, kst, base_url) -> Dict[str, Any]:
 
     except Exception as e:
         print(f"❌ [PARSE] 공지사항 파싱 중 오류: {e}")
-        return None 
+        return None

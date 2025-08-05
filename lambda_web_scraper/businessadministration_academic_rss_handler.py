@@ -1,5 +1,5 @@
 import json
-import asyncio
+
 import feedparser
 from datetime import datetime, timedelta
 import pytz
@@ -21,16 +21,8 @@ def handler(event, context):
     print("🚀 [HANDLER] 경영대 학사공지 RSS 스크래퍼 Lambda Handler 시작")
 
     try:
-        # 비동기 스크래퍼 실행
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-
-        try:
-            result = loop.run_until_complete(
-                scrape_businessadministration_academic_rss()
-            )
-        finally:
-            loop.close()
+        # 동기 스크래퍼 실행
+        result = scrape_businessadministration_academic_rss()
 
         return {
             "statusCode": 200,
@@ -57,7 +49,7 @@ def parse_date(date_str):
         return datetime.now(pytz.timezone("Asia/Seoul"))
 
 
-async def scrape_businessadministration_academic_rss() -> Dict[str, Any]:
+def scrape_businessadministration_academic_rss() -> Dict[str, Any]:
     """경영대 학사공지 RSS를 스크래핑하고 새로운 공지사항을 처리"""
 
     url = "https://biz.kookmin.ac.kr/community/notice/rss"

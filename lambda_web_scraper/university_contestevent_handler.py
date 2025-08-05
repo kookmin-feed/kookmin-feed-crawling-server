@@ -1,5 +1,5 @@
 import json
-import asyncio
+
 from datetime import datetime, timedelta
 import pytz
 import re
@@ -21,14 +21,8 @@ def handler(event, context):
     print("🚀 [HANDLER] Lambda Handler 시작")
 
     try:
-        # 비동기 스크래퍼 실행
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-
-        try:
-            result = loop.run_until_complete(scrape_university_contestevent())
-        finally:
-            loop.close()
+        # 동기 스크래퍼 실행
+        result = scrape_university_contestevent()
 
         return {
             "statusCode": 200,
@@ -45,7 +39,7 @@ def handler(event, context):
         }
 
 
-async def scrape_university_contestevent() -> Dict[str, Any]:
+def scrape_university_contestevent() -> Dict[str, Any]:
     """
     대학 공모행사공지를 스크래핑하고 새로운 공지사항을 처리
     """
@@ -57,10 +51,7 @@ async def scrape_university_contestevent() -> Dict[str, Any]:
 
     try:
         # 웹페이지 가져오기
-        soup = await fetch_page(url)
-        if not soup:
-            print("❌ [SCRAPER] 웹페이지 가져오기 실패")
-            return {"success": False, "error": "웹페이지를 가져올 수 없습니다"}
+        soup = fetch_page(url)
 
         # 공지사항 목록 요소들 가져오기
         elements = soup.select("div.board_list > ul > li")
@@ -75,7 +66,7 @@ async def scrape_university_contestevent() -> Dict[str, Any]:
         new_notices = []
 
         for element in elements:
-            notice = await parse_notice_from_element(element, kst)
+            notice = parse_notice_from_element(element, kst)
             if notice:
                 # 30일 이내의 데이터만 필터링
                 thirty_days_ago = datetime.now(kst) - timedelta(days=30)
@@ -121,7 +112,7 @@ async def scrape_university_contestevent() -> Dict[str, Any]:
         return {"success": False, "error": error_msg}
 
 
-async def parse_notice_from_element(element, kst) -> Dict[str, Any]:
+def parse_notice_from_element(element, kst) -> Dict[str, Any]:
     """HTML 요소에서 공모행사공지 정보를 추출"""
 
     try:
@@ -158,13 +149,13 @@ async def parse_notice_from_element(element, kst) -> Dict[str, Any]:
         # 날짜 추출 - 일반 게시물과 공지사항 처리 방식이 다름
         if is_notice:
             # 공지사항은 상세 페이지에서 날짜를 가져와야 함
-            published = await get_date_from_detail_page(link, kst)
+            published = get_date_from_detail_page(link, kst)
         else:
             # 일반 게시물은 목록에서 날짜 추출
             date_element = element.select_one("div.board_etc span:first-child")
             if not date_element:
                 # 날짜를 찾을 수 없는 경우 상세 페이지에서 가져옴
-                published = await get_date_from_detail_page(link, kst)
+                published = get_date_from_detail_page(link, kst)
             else:
                 date_str = date_element.get_text(strip=True)
                 try:
@@ -180,7 +171,7 @@ async def parse_notice_from_element(element, kst) -> Dict[str, Any]:
                         )
                     except ValueError:
                         # 날짜 형식이 다른 경우 상세 페이지에서 가져옴
-                        published = await get_date_from_detail_page(link, kst)
+                        published = get_date_from_detail_page(link, kst)
 
         # 공지사항인 경우 제목 앞에 [공지] 표시 추가
         if is_notice and not title.startswith("[공지]"):
@@ -201,13 +192,10 @@ async def parse_notice_from_element(element, kst) -> Dict[str, Any]:
         return None
 
 
-async def get_date_from_detail_page(url: str, kst) -> datetime:
+def get_date_from_detail_page(url: str, kst) -> datetime:
     """상세 페이지에서 날짜 정보를 추출합니다."""
     try:
-        soup = await fetch_page(url)
-        if not soup:
-            print(f"❌ [DETAIL] 상세 페이지 요청 실패: {url}")
-            return datetime.now(kst)
+        soup = fetch_page(url)
 
         # 상세 페이지에서 날짜 요소 찾기 - view_top > board_etc > 작성일 span
         date_element = soup.select_one("div.view_top div.board_etc span:first-child")
