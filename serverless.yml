@@ -5,7 +5,7 @@ provider:
   runtime: python3.11
   region: ap-northeast-2
   profile: kookmin-feed
-  timeout: 60
+  timeout: 30
   memorySize: 512
   iam:
     role:
@@ -144,3 +144,39 @@ functions:
         - '!**'
         - 'common_utils.py'
         - 'lambda_web_scraper/coss_academic_handler.py'
+
+  # Social Science Public Administration Academic 스크래퍼
+  socialscience_publicadministration_academic_scraper:
+    name: socialscience_publicadministration_academic_scraper
+    handler: lambda_web_scraper.socialscience_publicadministration_academic_handler.handler
+    layers:
+      - { Ref: ScraperDependenciesLambdaLayer }
+    package:
+      patterns:
+        - '!**'
+        - 'common_utils.py'
+        - 'lambda_web_scraper/socialscience_publicadministration_academic_handler.py'
+
+  # Social Science Political Science Academic 스크래퍼
+  socialscience_politicalscience_academic_scraper:
+    name: socialscience_politicalscience_academic_scraper
+    handler: lambda_web_scraper.socialscience_politicalscience_academic_handler.handler
+    layers:
+      - { Ref: ScraperDependenciesLambdaLayer }
+    package:
+      patterns:
+        - '!**'
+        - 'common_utils.py'
+        - 'lambda_web_scraper/socialscience_politicalscience_academic_handler.py'
+
+  # Social Science Education Academic 스크래퍼
+  socialscience_education_academic_scraper:
+    name: socialscience_education_academic_scraper
+    handler: lambda_web_scraper.socialscience_education_academic_handler.handler
+    layers:
+      - { Ref: ScraperDependenciesLambdaLayer }
+    package:
+      patterns:
+        - '!**'
+        - 'common_utils.py'
+        - 'lambda_web_scraper/socialscience_education_academic_handler.py'
