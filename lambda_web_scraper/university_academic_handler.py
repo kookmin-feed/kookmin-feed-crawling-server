@@ -25,7 +25,7 @@ def handler(event, context):
 
         return {
             "statusCode": 200,
-            # "body": json.dumps(result, ensure_ascii=False, default=str),
+            "body": json.dumps(result, ensure_ascii=False, default=str),
         }
 
     except Exception as e:
