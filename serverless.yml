@@ -123,3 +123,15 @@ functions:
         - '!**'
         - 'common_utils.py'
         - 'lambda_web_scraper/softwarecentered_academic_handler.py'
+
+  # COSS Academic 스크래퍼 - 레이어 사용, Master에 의해서만 호출
+  coss_academic_scraper:
+    name: coss_academic_scraper
+    handler: lambda_web_scraper.coss_academic_handler.handler
+    layers:
+      - { Ref: ScraperDependenciesLambdaLayer }
+    package:
+      patterns:
+        - '!**'
+        - 'common_utils.py'
+        - 'lambda_web_scraper/coss_academic_handler.py'
