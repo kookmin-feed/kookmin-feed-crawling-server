@@ -1,10 +1,15 @@
 import json
 import asyncio
-from datetime import datetime
+from datetime import datetime, timedelta
 import pytz
 import re
 from typing import Dict, Any
-from common_utils import fetch_page, get_recent_notices, save_notices_to_db
+from common_utils import (
+    fetch_page,
+    get_recent_notices,
+    save_notices_to_db,
+    send_slack_notification,
+)
 
 
 def handler(event, context):
@@ -31,12 +36,12 @@ def handler(event, context):
         }
 
     except Exception as e:
-        print(f"❌ [HANDLER] 오류 발생: {str(e)}")
+        error_msg = f"Lambda Handler 실행 중 오류: {str(e)}"
+        print(f"❌ [HANDLER] {error_msg}")
+        send_slack_notification(error_msg, "university_contestevent")
         return {
             "statusCode": 500,
-            "body": json.dumps(
-                {"error": f"Lambda Handler 실행 중 오류: {str(e)}"}, ensure_ascii=False
-            ),
+            "body": json.dumps({"error": error_msg}, ensure_ascii=False),
         }
 
 
@@ -72,13 +77,22 @@ async def scrape_university_contestevent() -> Dict[str, Any]:
         for element in elements:
             notice = await parse_notice_from_element(element, kst)
             if notice:
-                # 중복 확인
-                if (
-                    notice["link"] not in recent_links
-                    and notice["title"] not in recent_titles
-                ):
-                    new_notices.append(notice)
-                    print(f"🆕 [SCRAPER] 새로운 공지사항: {notice['title'][:30]}...")
+                # 30일 이내의 데이터만 필터링
+                thirty_days_ago = datetime.now(kst) - timedelta(days=30)
+                if notice["published"] >= thirty_days_ago:
+                    # 중복 확인
+                    if (
+                        notice["link"] not in recent_links
+                        and notice["title"] not in recent_titles
+                    ):
+                        new_notices.append(notice)
+                        print(
+                            f"🆕 [SCRAPER] 새로운 공지사항: {notice['title'][:30]}..."
+                        )
+                else:
+                    print(
+                        f"⏰ [SCRAPER] 30일 이전 공지사항 제외: {notice['title'][:30]}..."
+                    )
 
         print(f"📈 [SCRAPER] 새로운 공지사항 수: {len(new_notices)}")
 
@@ -98,11 +112,13 @@ async def scrape_university_contestevent() -> Dict[str, Any]:
         }
 
         print(f"🎉 [SCRAPER] 스크래핑 완료")
-        return result["statusCode"]
+        return result
 
     except Exception as e:
-        print(f"❌ [SCRAPER] 스크래핑 중 오류: {str(e)}")
-        return {"success": False, "error": f"스크래핑 중 오류: {str(e)}"}
+        error_msg = f"스크래핑 중 오류: {str(e)}"
+        print(f"❌ [SCRAPER] {error_msg}")
+        send_slack_notification(error_msg, "university_contestevent")
+        return {"success": False, "error": error_msg}
 
 
 async def parse_notice_from_element(element, kst) -> Dict[str, Any]:

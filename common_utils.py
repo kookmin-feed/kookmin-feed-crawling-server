@@ -4,6 +4,8 @@ from bs4 import BeautifulSoup
 from pymongo import MongoClient
 from typing import List, Dict, Any
 import os
+from slack_sdk import WebClient
+from slack_sdk.errors import SlackApiError
 
 
 async def fetch_page(url: str) -> BeautifulSoup:
@@ -35,7 +37,9 @@ async def fetch_page(url: str) -> BeautifulSoup:
                 return soup
 
     except Exception as e:
-        print(f"❌ [FETCH] 페이지 요청 중 오류: {e}")
+        error_msg = f"페이지 요청 중 오류: {e}"
+        print(f"❌ [FETCH] {error_msg}")
+        send_common_utils_error_notification("fetch_page", error_msg, f"URL: {url}")
         return None
 
 
@@ -55,7 +59,7 @@ def get_recent_notices(collection_name: str) -> List[Dict[str, Any]]:
         collection = db[collection_name]
 
         # 최근 30일간의 공지사항만 가져오기 (성능 최적화)
-        thirty_days_ago = datetime.now() - timedelta(days=90)
+        thirty_days_ago = datetime.now() - timedelta(days=40)
 
         notices = list(
             collection.find(
@@ -67,7 +71,11 @@ def get_recent_notices(collection_name: str) -> List[Dict[str, Any]]:
         return notices
 
     except Exception as e:
-        print(f"❌ [DB] MongoDB에서 데이터 조회 중 오류: {e}")
+        error_msg = f"MongoDB에서 데이터 조회 중 오류: {e}"
+        print(f"❌ [DB] {error_msg}")
+        send_common_utils_error_notification(
+            "get_recent_notices", error_msg, f"컬렉션: {collection_name}"
+        )
         return []
 
 
@@ -97,5 +105,54 @@ def save_notices_to_db(notices: List[Dict[str, Any]], collection_name: str) -> i
         return inserted_count
 
     except Exception as e:
-        print(f"❌ [DB] MongoDB에 데이터 저장 중 오류: {e}")
+        error_msg = f"MongoDB에 데이터 저장 중 오류: {e}"
+        print(f"❌ [DB] {error_msg}")
+        send_common_utils_error_notification(
+            "save_notices_to_db",
+            error_msg,
+            f"컬렉션: {collection_name}, 저장 시도 개수: {len(notices)}",
+        )
         return 0
+
+
+def send_slack_notification(message: str, scraper_type: str = "unknown") -> bool:
+    """Slack으로 에러 알림을 보냄"""
+
+    try:
+        slack_token = os.environ.get("SLACK_BOT_TOKEN")
+        channel_id = os.environ.get("SLACK_CHANNEL_ID")
+
+        if not slack_token or not channel_id:
+            print("❌ [SLACK] Slack 설정이 없습니다")
+            return False
+
+        client = WebClient(token=slack_token)
+
+        # 에러 메시지 포맷팅
+        formatted_message = f"🚨 *스크래퍼 에러 알림*\n\n*스크래퍼 타입:* {scraper_type}\n*에러 메시지:* {message}\n*발생 시간:* {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+
+        response = client.chat_postMessage(
+            channel=channel_id, text=formatted_message, parse="mrkdwn"
+        )
+
+        print(f"✅ [SLACK] 에러 알림 전송 성공: {response['ts']}")
+        return True
+
+    except SlackApiError as e:
+        print(f"❌ [SLACK] Slack API 에러: {e.response['error']}")
+        return False
+    except Exception as e:
+        print(f"❌ [SLACK] Slack 알림 전송 중 오류: {e}")
+        return False
+
+
+def send_common_utils_error_notification(
+    method_name: str, error: str, additional_info: str = None
+) -> bool:
+    """common_utils.py의 메서드들에서 발생한 에러를 위한 통합 알림 함수"""
+
+    message = f"Common Utils 에러\n*메서드:* {method_name}\n*에러:* {error}"
+    if additional_info:
+        message += f"\n*추가 정보:* {additional_info}"
+
+    return send_slack_notification(message, f"common_utils_{method_name}")

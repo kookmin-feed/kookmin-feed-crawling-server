@@ -1,11 +1,16 @@
 import json
 import asyncio
 import feedparser
-from datetime import datetime
+from datetime import datetime, timedelta
 import pytz
 from typing import Dict, Any
 
-from common_utils import fetch_page, get_recent_notices, save_notices_to_db
+from common_utils import (
+    fetch_page,
+    get_recent_notices,
+    save_notices_to_db,
+    send_slack_notification,
+)
 
 
 def handler(event, context):
@@ -33,12 +38,12 @@ def handler(event, context):
         }
 
     except Exception as e:
-        print(f"❌ [HANDLER] 오류 발생: {str(e)}")
+        error_msg = f"Lambda Handler 실행 중 오류: {str(e)}"
+        print(f"❌ [HANDLER] {error_msg}")
+        send_slack_notification(error_msg, "businessadministration_academic_rss")
         return {
             "statusCode": 500,
-            "body": json.dumps(
-                {"error": f"Lambda Handler 실행 중 오류: {str(e)}"}, ensure_ascii=False
-            ),
+            "body": json.dumps({"error": error_msg}, ensure_ascii=False),
         }
 
 
@@ -83,12 +88,21 @@ async def scrape_businessadministration_academic_rss() -> Dict[str, Any]:
 
             print(f"📝 [SCRAPER] 공지사항: {notice['title'][:30]}...")
 
-            # 중복 확인
-            if notice["link"] in recent_links or notice["title"] in recent_titles:
-                print(f"⏭️ [SCRAPER] 중복 공지사항 건너뜀: {notice['title'][:30]}...")
+            # 30일 이내의 데이터만 필터링
+            thirty_days_ago = datetime.now(kst) - timedelta(days=30)
+            if notice["published"] >= thirty_days_ago:
+                # 중복 확인
+                if notice["link"] in recent_links or notice["title"] in recent_titles:
+                    print(
+                        f"⏭️ [SCRAPER] 중복 공지사항 건너뜀: {notice['title'][:30]}..."
+                    )
+                else:
+                    new_notices.append(notice)
+                    print(f"🆕 [SCRAPER] 새로운 공지사항: {notice['title'][:30]}...")
             else:
-                new_notices.append(notice)
-                print(f"🆕 [SCRAPER] 새로운 공지사항: {notice['title'][:30]}...")
+                print(
+                    f"⏰ [SCRAPER] 30일 이전 공지사항 제외: {notice['title'][:30]}..."
+                )
 
         print(f"📈 [SCRAPER] 새로운 공지사항 수: {len(new_notices)}")
 
@@ -113,5 +127,7 @@ async def scrape_businessadministration_academic_rss() -> Dict[str, Any]:
         return result
 
     except Exception as e:
-        print(f"❌ [SCRAPER] 스크래핑 중 오류: {str(e)}")
-        return {"success": False, "error": f"스크래핑 중 오류: {str(e)}"}
+        error_msg = f"스크래핑 중 오류: {str(e)}"
+        print(f"❌ [SCRAPER] {error_msg}")
+        send_slack_notification(error_msg, "businessadministration_academic_rss")
+        return {"success": False, "error": error_msg}
