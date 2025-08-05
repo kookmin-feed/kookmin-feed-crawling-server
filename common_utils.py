@@ -1,4 +1,4 @@
-import aiohttp
+import requests
 from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
 from pymongo import MongoClient
@@ -6,41 +6,60 @@ from typing import List, Dict, Any
 import os
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
+import urllib3
+
+# SSL 경고 억제
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
-async def fetch_page(url: str) -> BeautifulSoup:
-    """웹 페이지를 비동기적으로 가져와 BeautifulSoup 객체로 반환"""
+def fetch_page(url: str, timeout: int = 30) -> BeautifulSoup:
+    """웹 페이지를 동기적으로 가져와 BeautifulSoup 객체로 반환"""
 
     try:
-        # SSL 검증 비활성화를 위한 설정
-        connector = aiohttp.TCPConnector(ssl=False)
-        async with aiohttp.ClientSession(connector=connector) as session:
-            async with session.get(url) as response:
-                if response.status != 200:
-                    print(
-                        f"❌ [FETCH] 페이지 요청 실패: {url}, 상태 코드: {response.status}"
-                    )
-                    return None
+        print(f"🔍 [FETCH] 요청 시작: {url}")
 
-                html = await response.read()
+        # requests를 사용한 단순한 HTTP 요청
+        response = requests.get(
+            url,
+            timeout=timeout,
+            verify=False,  # SSL 검증 비활성화
+            headers={
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+            },
+        )
 
-                # 인코딩 처리
-                try:
-                    html_text = html.decode("utf-8")
-                except UnicodeDecodeError:
-                    try:
-                        html_text = html.decode("euc-kr")
-                    except UnicodeDecodeError:
-                        html_text = html.decode("cp949", errors="replace")
+        if response.status_code != 200:
+            error_msg = f"페이지 요청 실패: {url}, 상태 코드: {response.status_code}"
+            print(f"❌ [FETCH] {error_msg}")
+            raise Exception(error_msg)
 
-                soup = BeautifulSoup(html_text, "html.parser")
-                return soup
+        # 응답 크기 제한
+        if len(response.content) > 5 * 1024 * 1024:  # 5MB
+            error_msg = f"응답이 너무 큽니다: {len(response.content)} bytes"
+            print(f"⚠️ [FETCH] {error_msg}")
+            raise Exception(error_msg)
 
+        # 인코딩 처리
+        try:
+            html_text = response.content.decode("utf-8")
+        except UnicodeDecodeError:
+            try:
+                html_text = response.content.decode("euc-kr")
+            except UnicodeDecodeError:
+                html_text = response.content.decode("cp949", errors="replace")
+
+        soup = BeautifulSoup(html_text, "html.parser")
+        print(f"✅ [FETCH] 성공: {url}")
+        return soup
+
+    except requests.exceptions.Timeout:
+        error_msg = f"타임아웃: {url}"
+        print(f"❌ [FETCH] {error_msg}")
+        raise Exception(error_msg)
     except Exception as e:
         error_msg = f"페이지 요청 중 오류: {e}"
         print(f"❌ [FETCH] {error_msg}")
-        send_common_utils_error_notification("fetch_page", error_msg, f"URL: {url}")
-        return None
+        raise Exception(error_msg)
 
 
 def get_recent_notices(collection_name: str) -> List[Dict[str, Any]]:
