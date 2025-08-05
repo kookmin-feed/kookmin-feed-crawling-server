@@ -17,6 +17,8 @@ provider:
   environment:
     MONGODB_URI: ${file(envs/config.${self:provider.stage, 'dev'}.json):MONGODB_URI}
     DB_NAME: ${file(envs/config.${self:provider.stage, 'dev'}.json):DB_NAME}
+    SLACK_BOT_TOKEN: ${file(envs/config.${self:provider.stage, 'dev'}.json):SLACK_BOT_TOKEN}
+    SLACK_CHANNEL_ID: ${file(envs/config.${self:provider.stage, 'dev'}.json):SLACK_CHANNEL_ID}
 
 # 패키지 설정
 package:
@@ -42,6 +44,7 @@ functions:
         - 'metadata/scraper_categories.json'
         - 'metadata/scraper_types.json'
         - 'master_handler.py'
+        - 'master_utils.py'
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
     events:
@@ -108,3 +111,15 @@ functions:
         - '!**'
         - 'common_utils.py'
         - 'lambda_web_scraper/university_contestevent_handler.py'
+
+  # Software Centered Academic 스크래퍼 - 레이어 사용, Master에 의해서만 호출
+  softwarecentered_academic_scraper:
+    name: softwarecentered_academic_scraper
+    handler: lambda_web_scraper.softwarecentered_academic_handler.handler
+    layers:
+      - { Ref: ScraperDependenciesLambdaLayer }
+    package:
+      patterns:
+        - '!**'
+        - 'common_utils.py'
+        - 'lambda_web_scraper/softwarecentered_academic_handler.py'
