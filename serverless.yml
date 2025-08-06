@@ -143,3 +143,10 @@ functions:
     handler: lambda_web_scraper.architecture_academic_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
+
+  # Arts Academic 스크래퍼
+  arts_academic_scraper:
+    name: arts_academic_scraper
+    handler: lambda_web_scraper.arts_academic_handler.handler
+    layers:
+      - { Ref: ScraperDependenciesLambdaLayer }
