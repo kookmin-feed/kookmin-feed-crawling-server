@@ -136,3 +136,10 @@ functions:
     handler: lambda_web_scraper.socialscience_education_academic_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
+
+  # Architecture Academic 스크래퍼
+  architecture_academic_scraper:
+    name: architecture_academic_scraper
+    handler: lambda_web_scraper.architecture_academic_handler.handler
+    layers:
+      - { Ref: ScraperDependenciesLambdaLayer }
