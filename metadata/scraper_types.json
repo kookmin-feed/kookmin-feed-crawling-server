@@ -1,270 +1,315 @@
 {
     "scraper_types": {
         "UNIVERSITY_ACADEMIC": {
+            "type_name": "UNIVERSITY_ACADEMIC",
             "korean_name": "대학 학사공지",
             "url": "https://cs.kookmin.ac.kr/news/kookmin/academic/",
             "scraper_class_name": "UniversityAcademicScraper",
             "scraper_lambda_function_name": "university_academic_scraper"
         },
         "UNIVERSITY_SCHOLARSHIP": {
+            "type_name": "UNIVERSITY_SCHOLARSHIP",
             "korean_name": "대학 장학공지",
             "url": "https://cs.kookmin.ac.kr/news/kookmin/scholarship/",
             "scraper_class_name": "UniversityScholarshipScraper",
             "scraper_lambda_function_name": "university_scholarship_scraper"
         },
         "COMPUTERSCIENCE_ACADEMIC_RSS": {
+            "type_name": "COMPUTERSCIENCE_ACADEMIC_RSS",
             "korean_name": "소융대 학사공지",
             "url": "https://cs.kookmin.ac.kr/news/notice/rss",
             "scraper_class_name": "RSSNoticeScraper",
             "scraper_lambda_function_name": "computerscience_academic_rss_scraper"
         },
         "SOFTWARECENTERED_ACADEMIC": {
+            "type_name": "SOFTWARECENTERED_ACADEMIC",
             "korean_name": "SW중심대학사업단 학사공지",
             "url": "https://software.kookmin.ac.kr/software/bulletin/notice.do",
             "scraper_class_name": "SoftwarecenteredAcademicScraper",
             "scraper_lambda_function_name": "softwarecentered_academic_scraper"
         },
         "BUSINESSADMINISTRATION_ACADEMIC_RSS": {
+            "type_name": "BUSINESSADMINISTRATION_ACADEMIC_RSS",
             "korean_name": "경영대 학사공지",
             "url": "https://biz.kookmin.ac.kr/community/notice/rss",
             "scraper_class_name": "RSSNoticeScraper",
             "scraper_lambda_function_name": "businessadministration_academic_rss_scraper"
         },
         "ARCHITECTURE_ACADEMIC": {
+            "type_name": "ARCHITECTURE_ACADEMIC",
             "korean_name": "건축대 학사공지",
             "url": "https://archi.kookmin.ac.kr/life/notice/",
             "scraper_class_name": "ArchitectureAcademicScraper",
             "scraper_lambda_function_name": "architecture_academic_scraper"
         },
         "SOCIALSCIENCE_PUBLICADMINISTRATION_ACADEMIC": {
+            "type_name": "SOCIALSCIENCE_PUBLICADMINISTRATION_ACADEMIC",
             "korean_name": "행정학과 학사공지",
             "url": "http://cms.kookmin.ac.kr/paap/notice/notice.do",
             "scraper_class_name": "SocialsciencePublicadministrationAcademicScraper",
             "scraper_lambda_function_name": "socialscience_publicadministration_academic_scraper"
         },
         "CREATIVEENGINEERING_MECHANICAL_ACADEMIC": {
+            "type_name": "CREATIVEENGINEERING_MECHANICAL_ACADEMIC",
             "korean_name": "기계공학부 학사공지",
             "url": "http://cms.kookmin.ac.kr/mech/bbs/notice.do",
             "scraper_class_name": "CreativeengineeringMechanicalAcademicScraper",
             "scraper_lambda_function_name": "creativeengineering_mechanical_academic_scraper"
         },
         "DESIGN_INDUSTRIAL_ACADEMIC": {
+            "type_name": "DESIGN_INDUSTRIAL_ACADEMIC",
             "korean_name": "공업디자인학과 학사공지",
             "url": "https://id.kookmin.ac.kr/id/intro/notice.do",
             "scraper_class_name": "DesignIndustrialAcademicScraper",
             "scraper_lambda_function_name": "design_industrial_academic_scraper"
         },
         "DESIGN_METALWORK_ACADEMIC": {
+            "type_name": "DESIGN_METALWORK_ACADEMIC",
             "korean_name": "금속공예학과 학사공지",
             "url": "http://mcraft.kookmin.ac.kr/?page_id=516",
             "scraper_class_name": "DesignMetalworkAcademicScraper",
             "scraper_lambda_function_name": "design_metalwork_academic_scraper"
         },
         "LINC_ACADEMIC": {
+            "type_name": "LINC_ACADEMIC",
             "korean_name": "LINC 3.0 사업단 학사공지",
             "url": "https://linc.kookmin.ac.kr/main/menu?gc=605XOAS",
             "scraper_class_name": "LincAcademicScraper",
             "scraper_lambda_function_name": "linc_academic_scraper"
         },
         "DESIGN_VISUAL_ACADEMIC": {
+            "type_name": "DESIGN_VISUAL_ACADEMIC",
             "korean_name": "시각디자인학과 학사공지",
             "url": "https://vcd.kookmin.ac.kr/vcd/etc-board/vcdnotice.do",
             "scraper_class_name": "DesignVisualAcademicScraper",
             "scraper_lambda_function_name": "design_visual_academic_scraper"
         },
         "CREATIVEENGINEERING_ELECTRICAL_ACADEMIC_RSS": {
+            "type_name": "CREATIVEENGINEERING_ELECTRICAL_ACADEMIC_RSS",
             "korean_name": "전자공학부 학사공지",
             "url": "https://ee.kookmin.ac.kr/community/board/notice/rss",
             "scraper_class_name": "RSSNoticeScraper",
             "scraper_lambda_function_name": "creativeengineering_electrical_academic_rss_scraper"
         },
         "AUTOMATIVEENGINEERING_ACADEMIC": {
+            "type_name": "AUTOMATIVEENGINEERING_ACADEMIC",
             "korean_name": "자동차융합대학 학사공지",
             "url": "https://auto.kookmin.ac.kr/board/notice/?&pn=0",
             "scraper_class_name": "AutomativeengineeringAcademicScraper",
             "scraper_lambda_function_name": "automativeengineering_academic_scraper"
         },
         "CREATIVEENGINEERING_ADVANCEDMATERIALS_ACADEMIC": {
+            "type_name": "CREATIVEENGINEERING_ADVANCEDMATERIALS_ACADEMIC",
             "korean_name": "신소재공학부 학사공지",
             "url": "https://cms.kookmin.ac.kr/mse/bbs/notice.do",
             "scraper_class_name": "CreativeengineeringAdvancedmaterialsAcademicScraper",
             "scraper_lambda_function_name": "creativeengineering_advancedmaterials_academic_scraper"
         },
         "LAW_ACADEMIC": {
+            "type_name": "LAW_ACADEMIC",
             "korean_name": "법과대학 학사공지",
             "url": "https://law.kookmin.ac.kr/law/etc-board/notice01.do",
             "scraper_class_name": "LawAcademicScraper",
             "scraper_lambda_function_name": "law_academic_scraper"
         },
         "UNIVERSITY_SPECIALLECTURE": {
+            "type_name": "UNIVERSITY_SPECIALLECTURE",
             "korean_name": "대학 특강공지",
             "url": "https://cs.kookmin.ac.kr/news/kookmin/special_lecture/",
             "scraper_class_name": "UniversitySpeciallectureScraper",
             "scraper_lambda_function_name": "university_speciallecture_scraper"
         },
         "UNIVERSITY_CONTESTEVENT": {
+            "type_name": "UNIVERSITY_CONTESTEVENT",
             "korean_name": "대학 공모행사공지",
             "url": "https://www.kookmin.ac.kr/user/kmuNews/notice/9/index.do",
             "scraper_class_name": "UniversityContesteventScraper",
             "scraper_lambda_function_name": "university_contestevent_scraper"
         },
         "DORMITORY_GENERAL_RSS": {
+            "type_name": "DORMITORY_GENERAL_RSS",
             "korean_name": "생활관 일반공지",
             "url": "https://dormitory.kookmin.ac.kr/notice/notice/rss",
             "scraper_class_name": "RSSNoticeScraper",
             "scraper_lambda_function_name": "dormitory_general_rss_scraper"
         },
         "SCIENCETECHNOLOGY_CHEMISTRY_ACADEMIC": {
+            "type_name": "SCIENCETECHNOLOGY_CHEMISTRY_ACADEMIC",
             "korean_name": "응용화학부 학사공지",
             "url": "http://chem.kookmin.ac.kr/sub6/menu1.php",
             "scraper_class_name": "SciencetechnologyChemistryAcademicScraper",
             "scraper_lambda_function_name": "sciencetechnology_chemistry_academic_scraper"
         },
         "CREATIVEENGINEERING_CIVIL_ACADEMIC": {
+            "type_name": "CREATIVEENGINEERING_CIVIL_ACADEMIC",
             "korean_name": "건설시스템공학부 학사공지",
             "url": "https://cms.kookmin.ac.kr/cee/bbs/notice.do",
             "scraper_class_name": "CreativeengineeringCivilAcademicScraper",
             "scraper_lambda_function_name": "creativeengineering_civil_academic_scraper"
         },
         "SCIENCETECHNOLOGY_SECURITY_ACADEMIC": {
+            "type_name": "SCIENCETECHNOLOGY_SECURITY_ACADEMIC",
             "korean_name": "정보보안암호수학과 학사공지",
             "url": "https://cns.kookmin.ac.kr/cns/notice/academic-notice.do",
             "scraper_class_name": "SciencetechnologySecurityAcademicScraper",
             "scraper_lambda_function_name": "sciencetechnology_security_academic_scraper"
         },
         "DESIGN_AUTOMOTIVE_ACADEMIC": {
+            "type_name": "DESIGN_AUTOMOTIVE_ACADEMIC",
             "korean_name": "자동차·운송디자인학과 학사공지",
             "url": "https://mobility.kookmin.ac.kr/mobility/etc-board/employment-information.do",
             "scraper_class_name": "DesignAutomotiveAcademicScraper",
             "scraper_lambda_function_name": "design_automotive_academic_scraper"
         },
         "SOCIALSCIENCE_EDUCATION_ACADEMIC": {
+            "type_name": "SOCIALSCIENCE_EDUCATION_ACADEMIC",
             "korean_name": "교육학과 학사공지",
             "url": "https://cms.kookmin.ac.kr/kmuedu/community/notice.do",
             "scraper_class_name": "SocialscienceEducationAcademicScraper",
             "scraper_lambda_function_name": "socialscience_education_academic_scraper"
         },
         "SOCIALSCIENCE_POLITICALSCIENCE_ACADEMIC": {
+            "type_name": "SOCIALSCIENCE_POLITICALSCIENCE_ACADEMIC",
             "korean_name": "정치외교학과 학사공지",
             "url": "https://polisci.kookmin.ac.kr/polisci/etc-board/board02.do",
             "scraper_class_name": "SocialsciencePoliticalscienceAcademicScraper",
             "scraper_lambda_function_name": "socialscience_politicalscience_academic_scraper"
         },
         "ECONOMICCOMMERCE_ACADEMIC_RSS": {
+            "type_name": "ECONOMICCOMMERCE_ACADEMIC_RSS",
             "korean_name": "경상대학 학사공지",
             "url": "https://kyungsang.kookmin.ac.kr/community/board/notice/rss",
             "scraper_class_name": "RSSNoticeScraper",
             "scraper_lambda_function_name": "economiccommerce_academic_rss_scraper"
         },
         "CREATIVEENGINEERING_ACADEMIC_RSS": {
+            "type_name": "CREATIVEENGINEERING_ACADEMIC_RSS",
             "korean_name": "창의공과대학 학사공지",
             "url": "https://engineering.kookmin.ac.kr/board/engineering_notice/rss",
             "scraper_class_name": "RSSNoticeScraper",
             "scraper_lambda_function_name": "creativeengineering_academic_rss_scraper"
         },
         "CULTURE_ACADEMIC_RSS": {
+            "type_name": "CULTURE_ACADEMIC_RSS",
             "korean_name": "교양대학 학사공지",
             "url": "https://culture.kookmin.ac.kr/community/notice/rss",
             "scraper_class_name": "RSSNoticeScraper",
             "scraper_lambda_function_name": "culture_academic_rss_scraper"
         },
         "TEACHING_ACADEMIC_RSS": {
+            "type_name": "TEACHING_ACADEMIC_RSS",
             "korean_name": "교직과정부 학사공지",
             "url": "https://teaching.kookmin.ac.kr/introduce/notice/rss",
             "scraper_class_name": "RSSNoticeScraper",
             "scraper_lambda_function_name": "teaching_academic_rss_scraper"
         },
         "SOCIALSCIENCE_SOCIOLOGY_ACADEMIC": {
+            "type_name": "SOCIALSCIENCE_SOCIOLOGY_ACADEMIC",
             "korean_name": "사회학과 학사공지",
             "url": "https://kmusoc.kookmin.ac.kr/kmusoc/etc-board/major_notice.do",
             "scraper_class_name": "SocialscienceSociologyAcademicScraper",
             "scraper_lambda_function_name": "socialscience_sociology_academic_scraper"
         },
         "SOCIALSCIENCE_COMMUNICATION_MEDIA_ACADEMIC": {
+            "type_name": "SOCIALSCIENCE_COMMUNICATION_MEDIA_ACADEMIC",
             "korean_name": "미디어전공 학사공지",
             "url": "https://kmumedia.kookmin.ac.kr/kmumedia/community/major-notice.do",
             "scraper_class_name": "SocialscienceCommunicationMediaAcademicScraper",
             "scraper_lambda_function_name": "socialscience_communication_media_academic_scraper"
         },
         "ARTS_ACADEMIC": {
+            "type_name": "ARTS_ACADEMIC",
             "korean_name": "예술대학 학사공지",
             "url": "https://art.kookmin.ac.kr/community/notice/",
             "scraper_class_name": "ArtsAcademicScraper",
             "scraper_lambda_function_name": "arts_academic_scraper"
         },
         "PHYSICALEDUCATION_ACADEMIC": {
+            "type_name": "PHYSICALEDUCATION_ACADEMIC",
             "korean_name": "체육대학 학사공지",
             "url": "https://sport.kookmin.ac.kr/sports/notice/notice01.do",
             "scraper_class_name": "PhysicaleducationAcademicScraper",
             "scraper_lambda_function_name": "physicaleducation_academic_scraper"
         },
         "DESIGN_CERAMICS_ACADEMIC": {
+            "type_name": "DESIGN_CERAMICS_ACADEMIC",
             "korean_name": "도자공예학과 학사공지",
             "url": "https://kmuceramics.com/news/",
             "scraper_class_name": "DesignCeramicsAcademicScraper",
             "scraper_lambda_function_name": "design_ceramics_academic_scraper"
         },
         "SOCIALSCIENCE_COMMUNICATION_ADVERTISING_ACADEMIC": {
+            "type_name": "SOCIALSCIENCE_COMMUNICATION_ADVERTISING_ACADEMIC",
             "korean_name": "광고홍보학전공 학사공지",
             "url": "https://adpr.kookmin.ac.kr/adpr/menu/undergraduate-notice.do",
             "scraper_class_name": "SocialscienceCommunicationAdvertisingAcademicScraper",
             "scraper_lambda_function_name": "socialscience_communication_advertising_academic_scraper"
         },
         "SOCIALSCIENCE_ACADEMIC": {
+            "type_name": "SOCIALSCIENCE_ACADEMIC",
             "korean_name": "사회과학대학 학사공지",
             "url": "https://social.kookmin.ac.kr/social/menu/social_notice.do",
             "scraper_class_name": "SocialscienceAcademicScraper",
             "scraper_lambda_function_name": "socialscience_academic_scraper"
         },
         "GLOBALHUMANITIES_EURASIAN_ACADEMIC": {
+            "type_name": "GLOBALHUMANITIES_EURASIAN_ACADEMIC",
             "korean_name": "러시아유라시아학과 학사공지",
             "url": "https://cms.kookmin.ac.kr/Russian-EurasianStudies/community/department-notice.do",
             "scraper_class_name": "GlobalhumanitiesEurasianAcademicScraper",
             "scraper_lambda_function_name": "globalhumanities_eurasian_academic_scraper"
         },
         "GLOBALHUMANITIES_ACADEMIC_RSS": {
+            "type_name": "GLOBALHUMANITIES_ACADEMIC_RSS",
             "korean_name": "글로벌인문지역대학 학사공지",
             "url": "https://cha.kookmin.ac.kr/community/college/notice/rss",
             "scraper_class_name": "RSSNoticeScraper",
             "scraper_lambda_function_name": "globalhumanities_academic_rss_scraper"
         },
         "GLOBALHUMANITIES_KOREAN_ACADEMIC_RSS": {
+            "type_name": "GLOBALHUMANITIES_KOREAN_ACADEMIC_RSS",
             "korean_name": "한국어문학부 학사공지",
             "url": "https://cha.kookmin.ac.kr/korea/korea_notice/rss",
             "scraper_class_name": "RSSNoticeScraper",
             "scraper_lambda_function_name": "globalhumanities_korean_academic_rss_scraper"
         },
         "GLOBALHUMANITIES_ENGLISH_ACADEMIC_RSS": {
+            "type_name": "GLOBALHUMANITIES_ENGLISH_ACADEMIC_RSS",
             "korean_name": "영어영문학부 학사공지",
             "url": "https://cha.kookmin.ac.kr/english/english_notice/rss",
             "scraper_class_name": "RSSNoticeScraper",
             "scraper_lambda_function_name": "globalhumanities_english_academic_rss_scraper"
         },
         "GLOBALHUMANITIES_CHINESE_ACADEMIC_RSS": {
+            "type_name": "GLOBALHUMANITIES_CHINESE_ACADEMIC_RSS",
             "korean_name": "중국어문학부 학사공지",
             "url": "https://cha.kookmin.ac.kr/china/china_notice/rss",
             "scraper_class_name": "RSSNoticeScraper",
             "scraper_lambda_function_name": "globalhumanities_chinese_academic_rss_scraper"
         },
         "GLOBALHUMANITIES_KOREANHISTORY_ACADEMIC_RSS": {
+            "type_name": "GLOBALHUMANITIES_KOREANHISTORY_ACADEMIC_RSS",
             "korean_name": "한국역사학과 학사공지",
             "url": "https://cha.kookmin.ac.kr/history/history_notice/rss",
             "scraper_class_name": "RSSNoticeScraper",
             "scraper_lambda_function_name": "globalhumanities_koreanhistory_academic_rss_scraper"
         },
         "COSS_ACADEMIC": {
+            "type_name": "COSS_ACADEMIC",
             "korean_name": "미래자동차사업단 학사공지",
             "url": "https://coss.kookmin.ac.kr/fvedu/community/notice.do",
             "scraper_class_name": "CossAcademicScraper",
             "scraper_lambda_function_name": "coss_academic_scraper"
         },
         "FUTUREMOBILITY_ACADEMIC": {
+            "type_name": "FUTUREMOBILITY_ACADEMIC",
             "korean_name": "미래모빌리티학과 학사공지",
             "url": "https://cms.kookmin.ac.kr/futuremobility/board/notice.do",
             "scraper_class_name": "FuturemobilityAcademicScraper",
             "scraper_lambda_function_name": "futuremobility_academic_scraper"
         },
         "NCCOSS_GENERAL": {
+            "type_name": "NCCOSS_GENERAL",
             "korean_name": "차세대통신사업단 학사공지",
             "url": "https://nccoss.kookmin.ac.kr/NCCOSS/community/notice.do",
             "scraper_class_name": "NccossGeneralScraper",
