@@ -332,3 +332,45 @@ functions:
     handler: lambda_web_scraper.creativeengineering_academic_rss_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
+
+  # Culture Academic RSS 스크래퍼
+  culture_academic_rss_scraper:
+    name: culture_academic_rss_scraper
+    handler: lambda_web_scraper.culture_academic_rss_handler.handler
+    layers:
+      - { Ref: ScraperDependenciesLambdaLayer }
+
+  # Teaching Academic RSS 스크래퍼
+  teaching_academic_rss_scraper:
+    name: teaching_academic_rss_scraper
+    handler: lambda_web_scraper.teaching_academic_rss_handler.handler
+    layers:
+      - { Ref: ScraperDependenciesLambdaLayer }
+
+  # Global Humanities Academic RSS 스크래퍼
+  globalhumanities_academic_rss_scraper:
+    name: globalhumanities_academic_rss_scraper
+    handler: lambda_web_scraper.globalhumanities_academic_rss_handler.handler
+    layers:
+      - { Ref: ScraperDependenciesLambdaLayer }
+
+  # Global Humanities Korean Academic RSS 스크래퍼
+  globalhumanities_korean_academic_rss_scraper:
+    name: globalhumanities_korean_academic_rss_scraper
+    handler: lambda_web_scraper.globalhumanities_korean_academic_rss_handler.handler
+    layers:
+      - { Ref: ScraperDependenciesLambdaLayer }
+
+  # Global Humanities English Academic RSS 스크래퍼
+  globalhumanities_english_academic_rss_scraper:
+    name: globalhumanities_english_academic_rss_scraper
+    handler: lambda_web_scraper.globalhumanities_english_academic_rss_handler.handler
+    layers:
+      - { Ref: ScraperDependenciesLambdaLayer }
+
+  # Global Humanities Chinese Academic RSS 스크래퍼
+  globalhumanities_chinese_academic_rss_scraper:
+    name: globalhumanities_chinese_academic_rss_scraper
+    handler: lambda_web_scraper.globalhumanities_chinese_academic_rss_handler.handler
+    layers:
+      - { Ref: ScraperDependenciesLambdaLayer }
