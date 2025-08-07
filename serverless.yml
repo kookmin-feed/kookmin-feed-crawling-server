@@ -255,3 +255,10 @@ functions:
     handler: lambda_web_scraper.futuremobility_academic_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
+
+  # Global Humanities Eurasian Academic 스크래퍼
+  globalhumanities_eurasian_academic_scraper:
+    name: globalhumanities_eurasian_academic_scraper
+    handler: lambda_web_scraper.globalhumanities_eurasian_academic_handler.handler
+    layers:
+      - { Ref: ScraperDependenciesLambdaLayer }
