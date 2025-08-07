@@ -262,3 +262,10 @@ functions:
     handler: lambda_web_scraper.globalhumanities_eurasian_academic_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
+
+  # Law Academic 스크래퍼
+  law_academic_scraper:
+    name: law_academic_scraper
+    handler: lambda_web_scraper.law_academic_handler.handler
+    layers:
+      - { Ref: ScraperDependenciesLambdaLayer }
