@@ -311,3 +311,10 @@ functions:
     handler: lambda_web_scraper.globalhumanities_koreanhistory_academic_rss_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
+
+  # Dormitory General RSS 스크래퍼
+  dormitory_general_rss_scraper:
+    name: dormitory_general_rss_scraper
+    handler: lambda_web_scraper.dormitory_general_rss_handler.handler
+    layers:
+      - { Ref: ScraperDependenciesLambdaLayer }
