@@ -318,3 +318,17 @@ functions:
     handler: lambda_web_scraper.dormitory_general_rss_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
+
+  # Economic Commerce Academic RSS 스크래퍼
+  economiccommerce_academic_rss_scraper:
+    name: economiccommerce_academic_rss_scraper
+    handler: lambda_web_scraper.economiccommerce_academic_rss_handler.handler
+    layers:
+      - { Ref: ScraperDependenciesLambdaLayer }
+
+  # Creative Engineering Academic RSS 스크래퍼
+  creativeengineering_academic_rss_scraper:
+    name: creativeengineering_academic_rss_scraper
+    handler: lambda_web_scraper.creativeengineering_academic_rss_handler.handler
+    layers:
+      - { Ref: ScraperDependenciesLambdaLayer }
