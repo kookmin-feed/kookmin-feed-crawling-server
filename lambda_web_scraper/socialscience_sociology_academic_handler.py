@@ -26,7 +26,6 @@ def handler(event, context):
 
         return {
             "statusCode": 200,
-            "body": json.dumps(result, ensure_ascii=False, default=str),
         }
 
     except Exception as e:
@@ -35,7 +34,6 @@ def handler(event, context):
         send_slack_notification(error_msg, "socialscience_sociology_academic")
         return {
             "statusCode": 500,
-            "body": json.dumps({"error": error_msg}, ensure_ascii=False),
         }
 
 
