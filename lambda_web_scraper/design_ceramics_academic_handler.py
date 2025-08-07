@@ -29,7 +29,6 @@ def handler(event, context):
         send_slack_notification(error_msg, "design_ceramics_academic")
         return {
             "statusCode": 500,
-            "body": json.dumps({"error": error_msg}, ensure_ascii=False),
         }
 
 def scrape_design_ceramics_academic() -> Dict[str, Any]:
