@@ -213,3 +213,10 @@ functions:
     handler: lambda_web_scraper.design_ceramics_academic_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
+
+  # Design Industrial Academic 스크래퍼
+  design_industrial_academic_scraper:
+    name: design_industrial_academic_scraper
+    handler: lambda_web_scraper.design_industrial_academic_handler.handler
+    layers:
+      - { Ref: ScraperDependenciesLambdaLayer }
