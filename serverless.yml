@@ -150,3 +150,10 @@ functions:
     handler: lambda_web_scraper.arts_academic_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
+
+  # Automative Engineering Academic 스크래퍼
+  automativeengineering_academic_scraper:
+    name: automativeengineering_academic_scraper
+    handler: lambda_web_scraper.automativeengineering_academic_handler.handler
+    layers:
+      - { Ref: ScraperDependenciesLambdaLayer }
