@@ -283,3 +283,10 @@ functions:
     handler: lambda_web_scraper.linc_academic_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
+
+  # NCCOSS General 스크래퍼
+  nccoss_general_scraper:
+    name: nccoss_general_scraper
+    handler: lambda_web_scraper.nccoss_general_handler.handler
+    layers:
+      - { Ref: ScraperDependenciesLambdaLayer }
