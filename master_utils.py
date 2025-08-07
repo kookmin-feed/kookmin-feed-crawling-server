@@ -143,7 +143,7 @@ def save_scraper_types_to_db(scraper_types, valid_scrapers):
             # 유효한 스크래퍼만 저장
             if scraper_info.get("scraper_lambda_function_name") in valid_scrapers:
                 collection.update_one(
-                    {"collection_name": scraper_type},
+                    {"collection_name": scraper_type.lower()},
                     {
                         "$set": {
                             "type_name": scraper_type,
