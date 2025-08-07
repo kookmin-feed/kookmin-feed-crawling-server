@@ -165,6 +165,13 @@ functions:
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
 
+  # Science Technology Chemistry Academic 스크래퍼
+  sciencetechnology_chemistry_academic_scraper:
+    name: sciencetechnology_chemistry_academic_scraper
+    handler: lambda_web_scraper.sciencetechnology_chemistry_academic_handler.handler
+    layers:
+      - { Ref: ScraperDependenciesLambdaLayer }
+
   # Architecture Academic 스크래퍼
   architecture_academic_scraper:
     name: architecture_academic_scraper
