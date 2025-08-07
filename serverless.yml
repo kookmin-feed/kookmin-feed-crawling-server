@@ -157,3 +157,10 @@ functions:
     handler: lambda_web_scraper.automativeengineering_academic_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
+
+  # Creative Engineering Advanced Materials Academic 스크래퍼
+  creativeengineering_advancedmaterials_academic_scraper:
+    name: creativeengineering_advancedmaterials_academic_scraper
+    handler: lambda_web_scraper.creativeengineering_advancedmaterials_academic_handler.handler
+    layers:
+      - { Ref: ScraperDependenciesLambdaLayer }
