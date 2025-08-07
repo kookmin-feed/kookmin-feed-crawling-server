@@ -11,6 +11,7 @@ from common_utils import (
     send_slack_notification,
 )
 
+
 def handler(event, context):
     """
     건설시스템공학부 학사공지 스크래퍼 Lambda Handler
@@ -31,6 +32,7 @@ def handler(event, context):
             "statusCode": 500,
             "body": json.dumps({"error": error_msg}, ensure_ascii=False),
         }
+
 
 def scrape_creativeengineering_civil_academic() -> Dict[str, Any]:
     """
@@ -56,21 +58,30 @@ def scrape_creativeengineering_civil_academic() -> Dict[str, Any]:
             if notice:
                 # 30일 이내의 데이터만 필터링
                 thirty_days_ago = datetime.now(kst) - timedelta(days=30)
-                if notice["published"] >= thirty_days_ago:
+                published_date = datetime.fromisoformat(
+                    notice["published"].replace("Z", "+00:00")
+                )
+                if published_date >= thirty_days_ago:
                     # 중복 확인
                     if (
                         notice["link"] not in recent_links
                         and notice["title"] not in recent_titles
                     ):
                         new_notices.append(notice)
-                        print(f"🆕 [SCRAPER] 새로운 공지사항: {notice['title'][:30]}...")
+                        print(
+                            f"🆕 [SCRAPER] 새로운 공지사항: {notice['title'][:30]}..."
+                        )
                 else:
-                    print(f"⏰ [SCRAPER] 30일 이전 공지사항 제외: {notice['title'][:30]}...")
+                    print(
+                        f"⏰ [SCRAPER] 30일 이전 공지사항 제외: {notice['title'][:30]}..."
+                    )
         print(f"📈 [SCRAPER] 새로운 공지사항 수: {len(new_notices)}")
         # 새로운 공지사항을 MongoDB에 저장
         saved_count = 0
         if new_notices:
-            saved_count = save_notices_to_db(new_notices, "creativeengineering_civil_academic")
+            saved_count = save_notices_to_db(
+                new_notices, "creativeengineering_civil_academic"
+            )
             print(f"💾 [SCRAPER] 저장 완료: {saved_count}개")
         result = {
             "success": True,
@@ -88,6 +99,7 @@ def scrape_creativeengineering_civil_academic() -> Dict[str, Any]:
         send_slack_notification(error_msg, "creativeengineering_civil_academic")
         return {"success": False, "error": error_msg}
 
+
 def parse_notice_from_element(element, kst, base_url) -> Dict[str, Any]:
     """HTML 요소에서 건설시스템공학부 학사공지 정보를 추출"""
     try:
@@ -103,13 +115,19 @@ def parse_notice_from_element(element, kst, base_url) -> Dict[str, Any]:
         # 링크 생성
         link = base_url.split("?")[0] + title_element.get("href", "")
         # 날짜 추출
-        date_text = element.select_one(".b-date").text.strip() if element.select_one(".b-date") else ""
+        date_text = (
+            element.select_one(".b-date").text.strip()
+            if element.select_one(".b-date")
+            else ""
+        )
         if date_text:
             date_match = re.search(r"(\d{2})\.(\d{2})\.(\d{2})", date_text)
             if date_match:
                 year, month, day = date_match.groups()
                 year = "20" + year
-                published = datetime.strptime(f"{year}-{month}-{day}", "%Y-%m-%d").replace(tzinfo=kst)
+                published = datetime.strptime(
+                    f"{year}-{month}-{day}", "%Y-%m-%d"
+                ).replace(tzinfo=kst)
             else:
                 published = datetime.now(kst)
         else:
@@ -117,9 +135,8 @@ def parse_notice_from_element(element, kst, base_url) -> Dict[str, Any]:
         result = {
             "title": title,
             "link": link,
-            "published": published,
+            "published": published.isoformat(),
             "scraper_type": "creativeengineering_civil_academic",
-            "korean_name": "건설시스템공학부 학사공지",
         }
         return result
     except Exception as e:

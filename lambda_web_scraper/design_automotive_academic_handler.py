@@ -11,6 +11,7 @@ from common_utils import (
     send_slack_notification,
 )
 
+
 def handler(event, context):
     """
     자동차·운송디자인학과 학사공지 스크래퍼 Lambda Handler
@@ -31,6 +32,7 @@ def handler(event, context):
             "statusCode": 500,
             "body": json.dumps({"error": error_msg}, ensure_ascii=False),
         }
+
 
 def scrape_design_automotive_academic() -> Dict[str, Any]:
     """
@@ -56,16 +58,23 @@ def scrape_design_automotive_academic() -> Dict[str, Any]:
             if notice:
                 # 30일 이내의 데이터만 필터링
                 thirty_days_ago = datetime.now(kst) - timedelta(days=30)
-                if notice["published"] >= thirty_days_ago:
+                published_date = datetime.fromisoformat(
+                    notice["published"].replace("Z", "+00:00")
+                )
+                if published_date >= thirty_days_ago:
                     # 중복 확인
                     if (
                         notice["link"] not in recent_links
                         and notice["title"] not in recent_titles
                     ):
                         new_notices.append(notice)
-                        print(f"🆕 [SCRAPER] 새로운 공지사항: {notice['title'][:30]}...")
+                        print(
+                            f"🆕 [SCRAPER] 새로운 공지사항: {notice['title'][:30]}..."
+                        )
                 else:
-                    print(f"⏰ [SCRAPER] 30일 이전 공지사항 제외: {notice['title'][:30]}...")
+                    print(
+                        f"⏰ [SCRAPER] 30일 이전 공지사항 제외: {notice['title'][:30]}..."
+                    )
         print(f"📈 [SCRAPER] 새로운 공지사항 수: {len(new_notices)}")
         # 새로운 공지사항을 MongoDB에 저장
         saved_count = 0
@@ -87,6 +96,7 @@ def scrape_design_automotive_academic() -> Dict[str, Any]:
         print(f"❌ [SCRAPER] {error_msg}")
         send_slack_notification(error_msg, "design_automotive_academic")
         return {"success": False, "error": error_msg}
+
 
 def parse_notice_from_element(element, kst, base_url) -> Dict[str, Any]:
     """HTML 요소에서 자동차·운송디자인학과 학사공지 정보를 추출"""
@@ -126,15 +136,16 @@ def parse_notice_from_element(element, kst, base_url) -> Dict[str, Any]:
             if date_match:
                 year, month, day = date_match.groups()
                 year = "20" + year
-                published = datetime.strptime(f"{year}-{month}-{day}", "%Y-%m-%d").replace(tzinfo=kst)
+                published = datetime.strptime(
+                    f"{year}-{month}-{day}", "%Y-%m-%d"
+                ).replace(tzinfo=kst)
             else:
                 published = datetime.now(kst)
         result = {
             "title": title,
             "link": link,
-            "published": published,
+            "published": published.isoformat(),
             "scraper_type": "design_automotive_academic",
-            "korean_name": "자동차·운송디자인학과 학사공지",
         }
         return result
     except Exception as e:

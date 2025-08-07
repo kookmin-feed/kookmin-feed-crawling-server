@@ -9,6 +9,7 @@ from common_utils import (
     send_slack_notification,
 )
 
+
 def handler(event, context):
     """
     자동차융합대학 학사공지 스크래퍼 Lambda Handler
@@ -29,6 +30,7 @@ def handler(event, context):
             "body": json.dumps({"error": error_msg}, ensure_ascii=False),
         }
 
+
 def scrape_automativeengineering_academic() -> Dict[str, Any]:
     """
     자동차융합대학 학사공지를 스크래핑하고 새로운 공지사항을 처리
@@ -48,19 +50,28 @@ def scrape_automativeengineering_academic() -> Dict[str, Any]:
             notice = parse_notice_from_element(element, kst)
             if notice:
                 thirty_days_ago = datetime.now(kst) - timedelta(days=30)
-                if notice["published"] >= thirty_days_ago:
+                published_date = datetime.fromisoformat(
+                    notice["published"].replace("Z", "+00:00")
+                )
+                if published_date >= thirty_days_ago:
                     if (
                         notice["link"] not in recent_links
                         and notice["title"] not in recent_titles
                     ):
                         new_notices.append(notice)
-                        print(f"🆕 [SCRAPER] 새로운 공지사항: {notice['title'][:30]}...")
+                        print(
+                            f"🆕 [SCRAPER] 새로운 공지사항: {notice['title'][:30]}..."
+                        )
                 else:
-                    print(f"⏰ [SCRAPER] 30일 이전 공지사항 제외: {notice['title'][:30]}...")
+                    print(
+                        f"⏰ [SCRAPER] 30일 이전 공지사항 제외: {notice['title'][:30]}..."
+                    )
         print(f"📈 [SCRAPER] 새로운 공지사항 수: {len(new_notices)}")
         saved_count = 0
         if new_notices:
-            saved_count = save_notices_to_db(new_notices, "automativeengineering_academic")
+            saved_count = save_notices_to_db(
+                new_notices, "automativeengineering_academic"
+            )
             print(f"💾 [SCRAPER] 저장 완료: {saved_count}개")
         result = {
             "success": True,
@@ -77,6 +88,7 @@ def scrape_automativeengineering_academic() -> Dict[str, Any]:
         print(f"❌ [SCRAPER] {error_msg}")
         send_slack_notification(error_msg, "automativeengineering_academic")
         return {"success": False, "error": error_msg}
+
 
 def parse_notice_from_element(element, kst) -> Dict[str, Any]:
     """HTML 요소에서 학사공지 정보를 추출"""
@@ -103,9 +115,8 @@ def parse_notice_from_element(element, kst) -> Dict[str, Any]:
         result = {
             "title": title,
             "link": full_url,
-            "published": published,
+            "published": published.isoformat(),
             "scraper_type": "automativeengineering_academic",
-            "korean_name": "자동차융합대학 학사공지",
         }
         return result
     except Exception as e:

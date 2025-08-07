@@ -69,7 +69,10 @@ def scrape_university_speciallecture() -> Dict[str, Any]:
             if notice:
                 # 30일 이내의 데이터만 필터링
                 thirty_days_ago = datetime.now(kst) - timedelta(days=30)
-                if notice["published"] >= thirty_days_ago:
+                published_date = datetime.fromisoformat(
+                    notice["published"].replace("Z", "+00:00")
+                )
+                if published_date >= thirty_days_ago:
                     # 중복 확인
                     if (
                         notice["link"] not in recent_links
@@ -143,9 +146,8 @@ def parse_notice_from_element(element, kst) -> Dict[str, Any]:
         result = {
             "title": title,
             "link": link,
-            "published": published,
+            "published": published.isoformat(),
             "scraper_type": "university_speciallecture",
-            "korean_name": "대학 특강공지",
         }
 
         return result

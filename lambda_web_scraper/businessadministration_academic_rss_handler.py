@@ -73,16 +73,16 @@ def scrape_businessadministration_academic_rss() -> Dict[str, Any]:
             notice = {
                 "title": entry.title,
                 "link": entry.link,
-                "published": parse_date(entry.published),
+                "published": parse_date(entry.published).isoformat(),
                 "scraper_type": "businessadministration_academic_rss",
-                "korean_name": "경영대 학사공지",
             }
 
             print(f"📝 [SCRAPER] 공지사항: {notice['title'][:30]}...")
 
             # 30일 이내의 데이터만 필터링
             thirty_days_ago = datetime.now(kst) - timedelta(days=30)
-            if notice["published"] >= thirty_days_ago:
+            published_date = parse_date(entry.published)
+            if published_date >= thirty_days_ago:
                 # 중복 확인
                 if notice["link"] in recent_links or notice["title"] in recent_titles:
                     print(
