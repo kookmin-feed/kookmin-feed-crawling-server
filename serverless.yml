@@ -269,3 +269,10 @@ functions:
     handler: lambda_web_scraper.law_academic_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
+
+  # LINC Academic 스크래퍼
+  linc_academic_scraper:
+    name: linc_academic_scraper
+    handler: lambda_web_scraper.linc_academic_handler.handler
+    layers:
+      - { Ref: ScraperDependenciesLambdaLayer }
