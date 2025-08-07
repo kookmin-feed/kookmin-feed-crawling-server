@@ -290,3 +290,10 @@ functions:
     handler: lambda_web_scraper.nccoss_general_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
+
+  # Computer Science Academic RSS 스크래퍼
+  computerscience_academic_rss_scraper:
+    name: computerscience_academic_rss_scraper
+    handler: lambda_web_scraper.computerscience_academic_rss_handler.handler
+    layers:
+      - { Ref: ScraperDependenciesLambdaLayer }
