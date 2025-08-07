@@ -178,3 +178,10 @@ functions:
     handler: lambda_web_scraper.creativeengineering_civil_academic_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
+
+  # Creative Engineering Mechanical Academic 스크래퍼
+  creativeengineering_mechanical_academic_scraper:
+    name: creativeengineering_mechanical_academic_scraper
+    handler: lambda_web_scraper.creativeengineering_mechanical_academic_handler.handler
+    layers:
+      - { Ref: ScraperDependenciesLambdaLayer }
