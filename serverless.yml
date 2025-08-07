@@ -248,3 +248,10 @@ functions:
     handler: lambda_web_scraper.design_visual_academic_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
+
+  # Future Mobility Academic 스크래퍼
+  futuremobility_academic_scraper:
+    name: futuremobility_academic_scraper
+    handler: lambda_web_scraper.futuremobility_academic_handler.handler
+    layers:
+      - { Ref: ScraperDependenciesLambdaLayer }
