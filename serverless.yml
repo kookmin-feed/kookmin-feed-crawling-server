@@ -241,3 +241,10 @@ functions:
     handler: lambda_web_scraper.design_metalwork_academic_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
+
+  # Design Visual Academic 스크래퍼
+  design_visual_academic_scraper:
+    name: design_visual_academic_scraper
+    handler: lambda_web_scraper.design_visual_academic_handler.handler
+    layers:
+      - { Ref: ScraperDependenciesLambdaLayer }
