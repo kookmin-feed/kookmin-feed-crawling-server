@@ -72,7 +72,10 @@ def scrape_socialscience_academic() -> Dict[str, Any]:
             if notice:
                 # 30일 이내의 데이터만 필터링
                 thirty_days_ago = datetime.now(kst) - timedelta(days=30)
-                if notice["published"] >= thirty_days_ago:
+                published_date = datetime.fromisoformat(
+                    notice["published"].replace("Z", "+00:00")
+                )
+                if published_date >= thirty_days_ago:
                     # 중복 확인
                     if (
                         notice["link"] not in recent_links
@@ -199,7 +202,7 @@ def parse_notice_from_element(element, kst, base_url) -> Dict[str, Any]:
         result = {
             "title": title,
             "link": link,
-            "published": published,
+            "published": published.isoformat(),
             "scraper_type": "socialscience_academic",
             "korean_name": "사회과학대학 학사공지",
         }
