@@ -80,9 +80,12 @@ def get_recent_notices(collection_name: str) -> List[Dict[str, Any]]:
         # 최근 30일간의 공지사항만 가져오기 (성능 최적화)
         thirty_days_ago = datetime.now() - timedelta(days=40)
 
+        # ISO 형식 문자열로 변환
+        thirty_days_ago_iso = thirty_days_ago.isoformat()
+
         notices = list(
             collection.find(
-                {"published": {"$gte": thirty_days_ago}},
+                {"published": {"$gte": thirty_days_ago_iso}},
                 {"title": 1, "link": 1, "_id": 0},
             )
         )
