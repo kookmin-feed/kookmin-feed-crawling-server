@@ -304,3 +304,10 @@ functions:
     handler: lambda_web_scraper.creativeengineering_electrical_academic_rss_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
+
+  # Global Humanities Korean History Academic RSS 스크래퍼
+  globalhumanities_koreanhistory_academic_rss_scraper:
+    name: globalhumanities_koreanhistory_academic_rss_scraper
+    handler: lambda_web_scraper.globalhumanities_koreanhistory_academic_rss_handler.handler
+    layers:
+      - { Ref: ScraperDependenciesLambdaLayer }
