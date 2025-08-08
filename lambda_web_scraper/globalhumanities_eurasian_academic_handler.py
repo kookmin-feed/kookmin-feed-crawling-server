@@ -1,15 +1,14 @@
-import json
-import re
 from datetime import datetime, timedelta
 import pytz
 from typing import Dict, Any
-from bs4 import BeautifulSoup
+
 from common_utils import (
     fetch_page,
     get_recent_notices,
     save_notices_to_db,
     send_slack_notification,
 )
+
 
 def handler(event, context):
     """
@@ -30,6 +29,7 @@ def handler(event, context):
         return {
             "statusCode": 500,
         }
+
 
 def scrape_globalhumanities_eurasian_academic() -> None:
     """
@@ -73,20 +73,27 @@ def scrape_globalhumanities_eurasian_academic() -> None:
                         and notice["title"] not in recent_titles
                     ):
                         new_notices.append(notice)
-                        print(f"🆕 [SCRAPER] 새로운 공지사항: {notice['title'][:30]}...")
+                        print(
+                            f"🆕 [SCRAPER] 새로운 공지사항: {notice['title'][:30]}..."
+                        )
                 else:
-                    print(f"⏰ [SCRAPER] 30일 이전 공지사항 제외: {notice['title'][:30]}...")
+                    print(
+                        f"⏰ [SCRAPER] 30일 이전 공지사항 제외: {notice['title'][:30]}..."
+                    )
         print(f"📈 [SCRAPER] 새로운 공지사항 수: {len(new_notices)}")
         # 새로운 공지사항을 MongoDB에 저장
         saved_count = 0
         if new_notices:
-            saved_count = save_notices_to_db(new_notices, "globalhumanities_eurasian_academic")
+            saved_count = save_notices_to_db(
+                new_notices, "globalhumanities_eurasian_academic"
+            )
             print(f"💾 [SCRAPER] 저장 완료: {saved_count}개")
         print(f"🎉 [SCRAPER] 스크래핑 완료")
     except Exception as e:
         error_msg = f"스크래핑 중 오류: {str(e)}"
         print(f"❌ [SCRAPER] {error_msg}")
         send_slack_notification(error_msg, "globalhumanities_eurasian_academic")
+
 
 def parse_notice_from_element(element, kst, base_url) -> Dict[str, Any]:
     """HTML 요소에서 러시아유라시아학과 학사공지 정보를 추출"""
@@ -143,7 +150,9 @@ def parse_notice_from_element(element, kst, base_url) -> Dict[str, Any]:
             except ValueError:
                 try:
                     # YY.MM.DD 형식
-                    published = datetime.strptime(date_str, "%y.%m.%d").replace(tzinfo=kst)
+                    published = datetime.strptime(date_str, "%y.%m.%d").replace(
+                        tzinfo=kst
+                    )
                 except ValueError:
                     print(f"❌ [PARSE] 날짜 파싱 오류: {date_str}")
                     published = datetime.now(kst)

@@ -1,15 +1,14 @@
-import json
-import re
 from datetime import datetime, timedelta
 import pytz
 from typing import Dict, Any
-from bs4 import BeautifulSoup
+
 from common_utils import (
     fetch_page,
     get_recent_notices,
     save_notices_to_db,
     send_slack_notification,
 )
+
 
 def handler(event, context):
     """
@@ -30,6 +29,7 @@ def handler(event, context):
         return {
             "statusCode": 500,
         }
+
 
 def scrape_design_industrial_academic() -> Dict[str, Any]:
     """
@@ -65,9 +65,13 @@ def scrape_design_industrial_academic() -> Dict[str, Any]:
                         and notice["title"] not in recent_titles
                     ):
                         new_notices.append(notice)
-                        print(f"🆕 [SCRAPER] 새로운 공지사항: {notice['title'][:30]}...")
+                        print(
+                            f"🆕 [SCRAPER] 새로운 공지사항: {notice['title'][:30]}..."
+                        )
                 else:
-                    print(f"⏰ [SCRAPER] 30일 이전 공지사항 제외: {notice['title'][:30]}...")
+                    print(
+                        f"⏰ [SCRAPER] 30일 이전 공지사항 제외: {notice['title'][:30]}..."
+                    )
         print(f"📈 [SCRAPER] 새로운 공지사항 수: {len(new_notices)}")
         # 새로운 공지사항을 MongoDB에 저장
         saved_count = 0
@@ -89,6 +93,7 @@ def scrape_design_industrial_academic() -> Dict[str, Any]:
         print(f"❌ [SCRAPER] {error_msg}")
         send_slack_notification(error_msg, "design_industrial_academic")
         return {"success": False, "error": error_msg}
+
 
 def parse_notice_from_element(element, kst, base_url) -> Dict[str, Any]:
     """HTML 요소에서 공업디자인학과 학사공지 정보를 추출"""

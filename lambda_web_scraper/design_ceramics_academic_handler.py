@@ -1,15 +1,14 @@
-import json
-import re
 from datetime import datetime, timedelta
 import pytz
 from typing import Dict, Any
-from bs4 import BeautifulSoup
+
 from common_utils import (
     fetch_page,
     get_recent_notices,
     save_notices_to_db,
     send_slack_notification,
 )
+
 
 def handler(event, context):
     """
@@ -31,6 +30,7 @@ def handler(event, context):
             "statusCode": 500,
         }
 
+
 def scrape_design_ceramics_academic() -> Dict[str, Any]:
     """
     도자공예학과 학사공지를 스크래핑하고 새로운 공지사항을 처리
@@ -46,7 +46,7 @@ def scrape_design_ceramics_academic() -> Dict[str, Any]:
         if not table:
             print("❌ [SCRAPER] 테이블을 찾을 수 없습니다")
             return {"success": False, "error": "테이블을 찾을 수 없습니다"}
-        
+
         elements = table.select("tbody tr")
         print(f"📊 [SCRAPER] 발견된 공지사항 수: {len(elements)}")
         # 기존 공지사항 확인 (MongoDB에서)
@@ -70,9 +70,13 @@ def scrape_design_ceramics_academic() -> Dict[str, Any]:
                         and notice["title"] not in recent_titles
                     ):
                         new_notices.append(notice)
-                        print(f"🆕 [SCRAPER] 새로운 공지사항: {notice['title'][:30]}...")
+                        print(
+                            f"🆕 [SCRAPER] 새로운 공지사항: {notice['title'][:30]}..."
+                        )
                 else:
-                    print(f"⏰ [SCRAPER] 30일 이전 공지사항 제외: {notice['title'][:30]}...")
+                    print(
+                        f"⏰ [SCRAPER] 30일 이전 공지사항 제외: {notice['title'][:30]}..."
+                    )
         print(f"📈 [SCRAPER] 새로운 공지사항 수: {len(new_notices)}")
         # 새로운 공지사항을 MongoDB에 저장
         saved_count = 0
@@ -94,6 +98,7 @@ def scrape_design_ceramics_academic() -> Dict[str, Any]:
         print(f"❌ [SCRAPER] {error_msg}")
         send_slack_notification(error_msg, "design_ceramics_academic")
         return {"success": False, "error": error_msg}
+
 
 def parse_notice_from_element(element, kst, base_url) -> Dict[str, Any]:
     """HTML 요소에서 도자공예학과 학사공지 정보를 추출"""
@@ -144,11 +149,15 @@ def parse_notice_from_element(element, kst, base_url) -> Dict[str, Any]:
                 published = datetime.strptime(date_str, "%Y.%m.%d").replace(tzinfo=kst)
             except ValueError:
                 try:
-                    published = datetime.strptime(date_str, "%Y-%m-%d").replace(tzinfo=kst)
+                    published = datetime.strptime(date_str, "%Y-%m-%d").replace(
+                        tzinfo=kst
+                    )
                 except ValueError:
                     try:
                         # 'YY.MM.DD' 형식 추가
-                        published = datetime.strptime(date_str, "%y.%m.%d").replace(tzinfo=kst)
+                        published = datetime.strptime(date_str, "%y.%m.%d").replace(
+                            tzinfo=kst
+                        )
                     except ValueError:
                         print(f"❌ [PARSE] 날짜 파싱 오류: {date_str}")
                         published = datetime.now(kst)

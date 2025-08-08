@@ -1,9 +1,8 @@
-import json
-
+import re
 from datetime import datetime, timedelta
 import pytz
-import re
 from typing import Dict, Any
+
 from common_utils import (
     fetch_page,
     get_recent_notices,

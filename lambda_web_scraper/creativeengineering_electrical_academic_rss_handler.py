@@ -1,5 +1,3 @@
-import json
-
 import feedparser
 from datetime import datetime, timedelta
 import pytz
@@ -31,7 +29,9 @@ def handler(event, context):
     except Exception as e:
         error_msg = f"Lambda Handler 실행 중 오류: {str(e)}"
         print(f"❌ [HANDLER] {error_msg}")
-        send_slack_notification(error_msg, "creativeengineering_electrical_academic_rss")
+        send_slack_notification(
+            error_msg, "creativeengineering_electrical_academic_rss"
+        )
         return {
             "statusCode": 500,
         }
@@ -57,7 +57,9 @@ def scrape_creativeengineering_electrical_academic_rss() -> Dict[str, Any]:
 
     try:
         # 기존 공지사항 확인 (MongoDB에서)
-        recent_notices = get_recent_notices("creativeengineering_electrical_academic_rss")
+        recent_notices = get_recent_notices(
+            "creativeengineering_electrical_academic_rss"
+        )
         recent_links = {notice.get("link") for notice in recent_notices}
         recent_titles = {notice.get("title") for notice in recent_notices}
 
@@ -119,5 +121,7 @@ def scrape_creativeengineering_electrical_academic_rss() -> Dict[str, Any]:
     except Exception as e:
         error_msg = f"스크래핑 중 오류: {str(e)}"
         print(f"❌ [SCRAPER] {error_msg}")
-        send_slack_notification(error_msg, "creativeengineering_electrical_academic_rss")
+        send_slack_notification(
+            error_msg, "creativeengineering_electrical_academic_rss"
+        )
         return {"success": False, "error": error_msg}

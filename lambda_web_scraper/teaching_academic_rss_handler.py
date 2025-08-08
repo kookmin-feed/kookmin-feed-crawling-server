@@ -1,5 +1,3 @@
-import json
-
 import feedparser
 from datetime import datetime, timedelta
 import pytz

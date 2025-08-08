@@ -1,15 +1,15 @@
-import json
 import re
 from datetime import datetime, timedelta
 import pytz
 from typing import Dict, Any
-from bs4 import BeautifulSoup
+
 from common_utils import (
     fetch_page,
     get_recent_notices,
     save_notices_to_db,
     send_slack_notification,
 )
+
 
 def handler(event, context):
     """
@@ -30,6 +30,7 @@ def handler(event, context):
         return {
             "statusCode": 500,
         }
+
 
 def scrape_nccoss_general() -> None:
     """
@@ -65,9 +66,13 @@ def scrape_nccoss_general() -> None:
                         and notice["title"] not in recent_titles
                     ):
                         new_notices.append(notice)
-                        print(f"🆕 [SCRAPER] 새로운 공지사항: {notice['title'][:30]}...")
+                        print(
+                            f"🆕 [SCRAPER] 새로운 공지사항: {notice['title'][:30]}..."
+                        )
                 else:
-                    print(f"⏰ [SCRAPER] 30일 이전 공지사항 제외: {notice['title'][:30]}...")
+                    print(
+                        f"⏰ [SCRAPER] 30일 이전 공지사항 제외: {notice['title'][:30]}..."
+                    )
         print(f"📈 [SCRAPER] 새로운 공지사항 수: {len(new_notices)}")
         # 새로운 공지사항을 MongoDB에 저장
         saved_count = 0
@@ -79,6 +84,7 @@ def scrape_nccoss_general() -> None:
         error_msg = f"스크래핑 중 오류: {str(e)}"
         print(f"❌ [SCRAPER] {error_msg}")
         send_slack_notification(error_msg, "nccoss_general")
+
 
 def parse_notice_from_element(element, kst, base_url) -> Dict[str, Any]:
     """HTML 요소에서 차세대통신사업단 학사공지 정보를 추출"""
@@ -119,7 +125,9 @@ def parse_notice_from_element(element, kst, base_url) -> Dict[str, Any]:
             if date_match:
                 year, month, day = date_match.groups()
                 year = "20" + year
-                published = datetime.strptime(f"{year}-{month}-{day}", "%Y-%m-%d").replace(tzinfo=kst)
+                published = datetime.strptime(
+                    f"{year}-{month}-{day}", "%Y-%m-%d"
+                ).replace(tzinfo=kst)
             else:
                 published = datetime.now(kst)
         result = {
