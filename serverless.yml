@@ -57,7 +57,12 @@ functions:
       - { Ref: ScraperDependenciesLambdaLayer }
     events:
       - schedule:
-          rate: rate(1 minute)
+          # AWS EventBridge Scheduler를 사용하도록 명시
+          method: scheduler
+          # 월~금, 8시 부터 20시 까지 매 20분 간격 설정
+          rate: cron(0/20 8-20 ? * MON-FRI *)
+          # 한국시간 기준
+          timezone: Asia/Seoul
           enabled: true
 
   # University Academic 스크래퍼
