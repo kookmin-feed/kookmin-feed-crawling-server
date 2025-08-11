@@ -19,7 +19,7 @@
     "devDependencies": {
         "serverless": "^3.38.0",
         "serverless-dotenv-plugin": "^6.0.0",
-        "serverless-python-requirements": "^6.0.0"
+        "serverless-python-requirements": "^6.1.2"
     },
     "dependencies": {
         "mongodb-mcp-server": "^0.2.0"

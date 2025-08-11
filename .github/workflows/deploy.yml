@@ -1,0 +1,39 @@
+name: serverless deploy
+
+on:
+  push:
+    branches:
+      - migrate-to-lambda
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      # - name: Install dependencies
+      #   run: |
+      #     python -m pip install --upgrade pip
+      #     if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Set up Node.js (Serverless CLI 필요)
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      - name: Install Serverless Framework CLI
+        run: npm install -g serverless
+
+      - name: Deploy to AWS Lambda with Serverless
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ap-northeast-2
+        run: serverless deploy
+
