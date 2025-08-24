@@ -1,0 +1,101 @@
+# GitHub Actions
+name: Deploy (migrate-to-lambda)
+
+## 트리거: 지정 브랜치에 push될 때
+on:
+  push:
+    branches:
+      - cd-base
+
+permissions:
+  contents: read
+
+## 동시 실행 제어: 같은 브랜치의 중복 실행을 한 그룹으로 묶음
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false  # 진행 중 작업 취소하지 않음
+
+## 배포 jobs 정의
+jobs:
+  deploy:
+    name: Serverless deploy (dev)
+    runs-on: ubuntu-latest
+    env:
+      STAGE: dev  # dev 스테이지
+      AWS_REGION: ap-northeast-2
+      TZ: Asia/Seoul
+      SLS_TELEMETRY_DISABLED: '1'
+      SLS_DEPRECATION_DISABLE: '*'
+    # 실행 단계
+    steps:
+      # 저장소 코드 체크아웃
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Node.js 환경 설정 및 npm 캐시 사용
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      # Python 환경 설정 (Lambda 레이어 빌드용)
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # Node.js 의존성 설치 (serverless 플러그인 등)
+      - name: Install Node dependencies
+        run: npm ci --no-audit --no-fund
+
+      # GitHub Secrets 값을 파일(envs/config.dev.json)로 생성
+      - name: Create envs config from secrets (dev)
+        env:
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
+        run: |
+          mkdir -p envs
+          cat > envs/config.${{ env.STAGE }}.json <<'JSON'
+          {
+            "MONGODB_URI": "${MONGODB_URI}",
+            "DB_NAME": "${DB_NAME}",
+            "SLACK_BOT_TOKEN": "${SLACK_BOT_TOKEN}",
+            "SLACK_CHANNEL_ID": "${SLACK_CHANNEL_ID}"
+          }
+          JSON
+
+      # AWS Lambda Python 레이어 빌드 (requirements.txt 패키지들을 layer/python에 설치)
+      - name: Build Python layer
+        run: |
+          python -m pip install --upgrade pip
+          mkdir -p layer/python
+          pip install -r requirements.txt -t layer/python
+
+      # GitHub Secrets로 AWS 자격 증명 설정 (OIDC 대신 액세스 키 사용)
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      # AWS 프로필 생성
+      - name: Create AWS named profile 'kookmin-feed'
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: |
+          aws configure set aws_access_key_id "$AWS_ACCESS_KEY_ID" --profile kookmin-feed
+          aws configure set aws_secret_access_key "$AWS_SECRET_ACCESS_KEY" --profile kookmin-feed
+          aws configure set region "$AWS_REGION" --profile kookmin-feed
+
+      # Serverless Framework 버전 확인(디버깅/환경 검증용)
+      - name: Serverless version
+        run: npx serverless --version
+
+      # 실제 배포 단계 — serverless.yml 설정을 기준으로 dev 스테이지에 배포
+      - name: Deploy to AWS (dev)
+        run: npx serverless deploy --stage ${{ env.STAGE }}
