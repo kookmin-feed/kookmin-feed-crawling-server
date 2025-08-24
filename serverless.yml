@@ -7,12 +7,10 @@ provider:
   profile: kookmin-feed
   timeout: 30
   memorySize: 512
-  iam:
-    role:
-      statements:
-        - Effect: Allow
-          Action: "*"
-          Resource: "*"
+
+  # 제가 slack에서 연락을 보지 않는다면 iam role 문제가 해결된 것입니다.
+  role: arn:aws:iam::558793517018:role/kookmin-feed-crawling-lambdaRole
+
   environment:
     MONGODB_URI: ${file(envs/config.${self:provider.stage, 'dev'}.json):MONGODB_URI}
     DB_NAME: ${file(envs/config.${self:provider.stage, 'dev'}.json):DB_NAME}
