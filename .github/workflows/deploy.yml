@@ -51,18 +51,7 @@ jobs:
 
       # GitHub Secrets 값을 파일(envs/config.dev.json)로 생성
       - name: Create envs config from secrets (dev)
-        env:
-          MONGODB_URI: ${{ secrets.MONGODB_URI }}
-          DB_NAME: ${{ secrets.DB_NAME }}
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-          SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
         run: |
-          echo "STAGE: ${{ env.STAGE }}"
-          echo "MONGODB_URI: ${{ secrets.MONGODB_URI }}"
-          echo "DB_NAME: ${{ secrets.DB_NAME }}"
-          echo "SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}"
-          echo "SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}"
-
           mkdir -p envs
           cat > envs/config.${{ env.STAGE }}.json <<'JSON'
           {
