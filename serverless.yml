@@ -8,7 +8,6 @@ provider:
   timeout: 30
   memorySize: 512
 
-  # 제가 slack에서 연락을 보지 않는다면 iam role 문제가 해결된 것입니다.
   role: arn:aws:iam::558793517018:role/kookmin-feed-crawling-lambdaRole
 
   environment:
