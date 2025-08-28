@@ -5,7 +5,7 @@ name: Deploy (migrate-to-lambda)
 on:
   push:
     branches:
-      - cd-base
+      - migrate-to-lambda
 
 permissions:
   contents: read
