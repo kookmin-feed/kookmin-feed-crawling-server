@@ -1,11 +1,12 @@
 # GitHub Actions
-name: Deploy (main)
+name: Deploy
 
 ## 트리거: 지정 브랜치에 push될 때
 on:
   push:
     branches:
-      - main
+      - dev
+      - prod
 
 permissions:
   contents: read
@@ -18,10 +19,10 @@ concurrency:
 ## 배포 jobs 정의
 jobs:
   deploy:
-    name: Serverless deploy (prod)
+    name: Serverless deploy (${{ github.ref_name }})
     runs-on: ubuntu-latest
     env:
-      STAGE: prod  # prod 스테이지
+      STAGE: ${{ github.ref_name }}
       AWS_REGION: ap-northeast-2
       TZ: Asia/Seoul
       SLS_TELEMETRY_DISABLED: '1'
@@ -49,14 +50,29 @@ jobs:
       - name: Install Node dependencies
         run: npm ci --no-audit --no-fund
 
-      # GitHub Secrets 값을 파일(envs/config.dev.json)로 생성
+      # GitHub Secrets 값을 파일(envs/config.dev.json)로 생성 (dev 환경)
       - name: Create envs config from secrets (dev)
+        if: env.STAGE == 'dev'
         run: |
           mkdir -p envs
-          cat > envs/config.${{ env.STAGE }}.json <<'JSON'
+          cat > envs/config.dev.json <<'JSON'
           {
             "MONGODB_URI": "${{ secrets.MONGODB_URI }}",
             "DB_NAME": "${{ secrets.DB_NAME }}",
+            "SLACK_BOT_TOKEN": "${{ secrets.SLACK_BOT_TOKEN }}",
+            "SLACK_CHANNEL_ID": "${{ secrets.SLACK_CHANNEL_ID }}"
+          }
+          JSON
+
+      # GitHub Secrets 값을 파일(envs/config.prod.json)로 생성 (prod 환경)
+      - name: Create envs config from secrets (prod)
+        if: env.STAGE == 'prod'
+        run: |
+          mkdir -p envs
+          cat > envs/config.prod.json <<'JSON'
+          {
+            "MONGODB_URI": "${{ secrets.PROD_MONGODB_URI }}",
+            "DB_NAME": "${{ secrets.PROD_DB_NAME }}",
             "SLACK_BOT_TOKEN": "${{ secrets.SLACK_BOT_TOKEN }}",
             "SLACK_CHANNEL_ID": "${{ secrets.SLACK_CHANNEL_ID }}"
           }
@@ -91,6 +107,6 @@ jobs:
       - name: Serverless version
         run: npx serverless --version
 
-      # 실제 배포 단계 — serverless.yml 설정을 기준으로 dev 스테이지에 배포
-      - name: Deploy to AWS (prod)
+      # 실제 배포 단계 — serverless.yml 설정을 기준으로 동적 스테이지에 배포
+      - name: Deploy to AWS (${{ env.STAGE }})
         run: npx serverless deploy --stage ${{ env.STAGE }}
