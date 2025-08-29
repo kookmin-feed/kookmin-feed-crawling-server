@@ -1,11 +1,11 @@
 # GitHub Actions
-name: Deploy (migrate-to-lambda)
+name: Deploy (main)
 
 ## 트리거: 지정 브랜치에 push될 때
 on:
   push:
     branches:
-      - migrate-to-lambda
+      - main
 
 permissions:
   contents: read
@@ -18,10 +18,10 @@ concurrency:
 ## 배포 jobs 정의
 jobs:
   deploy:
-    name: Serverless deploy (dev)
+    name: Serverless deploy (prod)
     runs-on: ubuntu-latest
     env:
-      STAGE: dev  # dev 스테이지
+      STAGE: prod  # prod 스테이지
       AWS_REGION: ap-northeast-2
       TZ: Asia/Seoul
       SLS_TELEMETRY_DISABLED: '1'
@@ -92,5 +92,5 @@ jobs:
         run: npx serverless --version
 
       # 실제 배포 단계 — serverless.yml 설정을 기준으로 dev 스테이지에 배포
-      - name: Deploy to AWS (dev)
+      - name: Deploy to AWS (prod)
         run: npx serverless deploy --stage ${{ env.STAGE }}
