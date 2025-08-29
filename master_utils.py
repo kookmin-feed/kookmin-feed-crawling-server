@@ -139,30 +139,39 @@ def save_scraper_types_to_db(scraper_types, valid_scrapers):
             return False
 
         saved_count = 0
+        current_stage = os.environ.get("STAGE", "dev")
+
         for scraper_type, scraper_info in scraper_types.items():
             # 유효한 스크래퍼만 저장
-            if scraper_info.get("scraper_lambda_function_name") in valid_scrapers:
-                collection.update_one(
-                    {"collection_name": scraper_type.lower()},
-                    {
-                        "$set": {
-                            "type_name": scraper_type,
-                            "korean_name": scraper_info.get("korean_name", ""),
-                            "url": scraper_info.get("url", ""),
-                            "scraper_class_name": scraper_info.get(
-                                "scraper_class_name", ""
-                            ),
-                            "scraper_lambda_function_name": scraper_info.get(
-                                "scraper_lambda_function_name", ""
-                            ),
-                        }
-                    },
-                    upsert=True,
-                )
-                saved_count += 1
-                print(
-                    f"✅ [DB] ScraperType 저장: {scraper_info.get('korean_name', '')}"
-                )
+
+            # stage prefix를 추가한 함수명 생성
+            base_function_name = scraper_info.get("scraper_lambda_function_name")
+            if base_function_name:
+                expected_function_name = f"{current_stage}-{base_function_name}"
+                print(f"예상 함수명: {expected_function_name}")
+
+                if expected_function_name in valid_scrapers:
+                    collection.update_one(
+                        {"collection_name": scraper_type.lower()},
+                        {
+                            "$set": {
+                                "type_name": scraper_type,
+                                "korean_name": scraper_info.get("korean_name", ""),
+                                "url": scraper_info.get("url", ""),
+                                "scraper_class_name": scraper_info.get(
+                                    "scraper_class_name", ""
+                                ),
+                                "scraper_lambda_function_name": scraper_info.get(
+                                    "scraper_lambda_function_name", ""
+                                ),
+                            }
+                        },
+                        upsert=True,
+                    )
+                    saved_count += 1
+                    print(
+                        f"✅ [DB] ScraperType 저장: {scraper_info.get('korean_name', '')}"
+                    )
 
         print(f"✅ [DB] ScraperType 저장 또는 업데이트 완료: {saved_count}개")
         return True

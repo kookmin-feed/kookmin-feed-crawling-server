@@ -18,7 +18,9 @@ def handler(event, context):
     """
 
     try:
-        print("🚀 [MASTER] Master Handler 시작")
+        # 현재 stage 정보 가져오기
+        current_stage = os.environ.get("STAGE", "dev")
+        print(f"🚀 [MASTER] Master Handler 시작 (Stage: {current_stage})")
 
         # 1. 스크래퍼 검증 및 메타데이터 저장
         validation_result = validate_and_save_scrapers()
@@ -70,8 +72,11 @@ def handler(event, context):
 def validate_and_save_scrapers():
     """스크래퍼 검증 및 메타데이터 저장을 수행합니다."""
 
+    # 현재 stage 정보 가져오기
+    current_stage = os.environ.get("STAGE", "dev")
+
     # 1. JSON 파일들 로드
-    print("📋 [MASTER] 스크래퍼 설정 파일 로드")
+    print(f"📋 [MASTER] 스크래퍼 설정 파일 로드 (Stage: {current_stage})")
     scraper_types = load_scraper_types()
     scraper_categories = load_scraper_categories()
 
@@ -102,14 +107,17 @@ def validate_and_save_scrapers():
         response = lambda_client.list_functions(Marker=response["NextMarker"])
         all_functions.extend(response["Functions"])
 
-    # 3. scraper로 끝나는 함수들만 필터링
+    # 3. 현재 stage에 해당하는 scraper 함수들만 필터링
     scraper_functions = [
         func["FunctionName"]
         for func in all_functions
         if func["FunctionName"].endswith("scraper")
+        and func["FunctionName"].startswith(f"{current_stage}-")
     ]
 
-    print(f"📋 [MASTER] 발견된 스크래퍼 Lambda 함수: {len(scraper_functions)}개")
+    print(
+        f"📋 [MASTER] 발견된 스크래퍼 Lambda 함수 ({current_stage}): {len(scraper_functions)}개"
+    )
 
     # 4. 유효한 스크래퍼 함수들 필터링
     valid_scrapers = validate_scrapers(
@@ -196,6 +204,7 @@ def validate_scrapers(scraper_functions, scraper_types, scraper_categories):
     Returns:
         List[str]: 유효한 스크래퍼 Lambda 함수 이름 리스트
     """
+    current_stage = os.environ.get("STAGE", "dev")
     valid_scrapers = []
 
     # JSON에 정의된 스크래퍼 타입들을 순회하면서 해당하는 Lambda 함수가 존재하는지 확인
@@ -208,25 +217,28 @@ def validate_scrapers(scraper_functions, scraper_types, scraper_categories):
             )
             continue
 
-        # 3. JSON의 scraper_lambda_function_name과 실제 Lambda 함수명을 직접 비교
-        expected_function_name = scraper_info.get("scraper_lambda_function_name")
-        if not expected_function_name:
+        # 3. JSON의 scraper_lambda_function_name에 stage prefix를 추가하여 실제 Lambda 함수명과 비교
+        base_function_name = scraper_info.get("scraper_lambda_function_name")
+        if not base_function_name:
             print(
                 f"❌ [VALIDATE] Lambda 함수명이 정의되지 않은 스크래퍼 타입: {scraper_type}"
             )
             continue
 
+        # stage prefix를 추가한 실제 함수명 생성
+        expected_function_name = f"{current_stage}-{base_function_name}"
+
         # 실제 Lambda 함수 이름 확인
         if expected_function_name not in scraper_functions:
             print(
-                f"❌ [VALIDATE] Lambda 함수가 존재하지 않는 스크래퍼 타입: {scraper_type} (예상: {expected_function_name})"
+                f"❌ [VALIDATE] Lambda 함수가 존재하지 않는 스크래퍼 타입: {scraper_type} (예상: {expected_function_name}, 기본: {base_function_name})"
             )
             continue
 
         matching_function = expected_function_name
 
         print(
-            f"✅ [VALIDATE] 유효한 스크래퍼: {matching_function} ({scraper_type} -> {category})"
+            f"✅ [VALIDATE] 유효한 스크래퍼 ({current_stage}): {matching_function} ({scraper_type} -> {category})"
         )
         valid_scrapers.append(matching_function)
 

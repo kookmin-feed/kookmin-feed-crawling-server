@@ -7,10 +7,12 @@ provider:
   profile: kookmin-feed
   timeout: 30
   memorySize: 512
+  stage: ${opt:stage, 'dev'}
 
   role: arn:aws:iam::558793517018:role/kookmin-feed-crawling-lambdaRole
 
   environment:
+    STAGE: ${self:provider.stage}
     MONGODB_URI: ${file(envs/config.${self:provider.stage, 'dev'}.json):MONGODB_URI}
     DB_NAME: ${file(envs/config.${self:provider.stage, 'dev'}.json):DB_NAME}
     SLACK_BOT_TOKEN: ${file(envs/config.${self:provider.stage, 'dev'}.json):SLACK_BOT_TOKEN}
@@ -48,7 +50,7 @@ layers:
 functions:
   # Master 함수
   master:
-    name: master
+    name: ${self:provider.stage}-master
     handler: master_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
@@ -64,315 +66,315 @@ functions:
 
   # University Academic 스크래퍼
   university_academic_scraper:
-    name: university_academic_scraper
+    name: ${self:provider.stage}-university_academic_scraper
     handler: lambda_web_scraper.university_academic_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
 
   # Business Administration Academic RSS 스크래퍼
   businessadministration_academic_rss_scraper:
-    name: businessadministration_academic_rss_scraper
+    name: ${self:provider.stage}-businessadministration_academic_rss_scraper
     handler: lambda_web_scraper.businessadministration_academic_rss_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
 
   # University Special Lecture 스크래퍼
   university_speciallecture_scraper:
-    name: university_speciallecture_scraper
+    name: ${self:provider.stage}-university_speciallecture_scraper
     handler: lambda_web_scraper.university_speciallecture_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
 
   # University Scholarship 스크래퍼
   university_scholarship_scraper:
-    name: university_scholarship_scraper
+    name: ${self:provider.stage}-university_scholarship_scraper
     handler: lambda_web_scraper.university_scholarship_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
 
   # University Contest Event 스크래퍼
   university_contestevent_scraper:
-    name: university_contestevent_scraper
+    name: ${self:provider.stage}-university_contestevent_scraper
     handler: lambda_web_scraper.university_contestevent_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
 
   # Software Centered Academic 스크래퍼
   softwarecentered_academic_scraper:
-    name: softwarecentered_academic_scraper
+    name: ${self:provider.stage}-softwarecentered_academic_scraper
     handler: lambda_web_scraper.softwarecentered_academic_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
 
   # Social Science Sociology Academic 스크래퍼
   socialscience_sociology_academic_scraper:
-    name: socialscience_sociology_academic_scraper
+    name: ${self:provider.stage}-socialscience_sociology_academic_scraper
     handler: lambda_web_scraper.socialscience_sociology_academic_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
 
   # COSS Academic 스크래퍼
   coss_academic_scraper:
-    name: coss_academic_scraper
+    name: ${self:provider.stage}-coss_academic_scraper
     handler: lambda_web_scraper.coss_academic_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
 
   # Social Science Public Administration Academic 스크래퍼
   socialscience_publicadministration_academic_scraper:
-    name: socialscience_publicadministration_academic_scraper
+    name: ${self:provider.stage}-socialscience_publicadministration_academic_scraper
     handler: lambda_web_scraper.socialscience_publicadministration_academic_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
 
   # Social Science Political Science Academic 스크래퍼
   socialscience_politicalscience_academic_scraper:
-    name: socialscience_politicalscience_academic_scraper
+    name: ${self:provider.stage}-socialscience_politicalscience_academic_scraper
     handler: lambda_web_scraper.socialscience_politicalscience_academic_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
 
   # Social Science Education Academic 스크래퍼
   socialscience_education_academic_scraper:
-    name: socialscience_education_academic_scraper
+    name: ${self:provider.stage}-socialscience_education_academic_scraper
     handler: lambda_web_scraper.socialscience_education_academic_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
 
   # Social Science Communication Media Academic 스크래퍼
   socialscience_communication_media_academic_scraper:
-    name: socialscience_communication_media_academic_scraper
+    name: ${self:provider.stage}-socialscience_communication_media_academic_scraper
     handler: lambda_web_scraper.socialscience_communication_media_academic_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
 
   # Social Science Communication Advertising Academic 스크래퍼
   socialscience_communication_advertising_academic_scraper:
-    name: socialscience_communication_advertising_academic_scraper
+    name: ${self:provider.stage}-socialscience_communication_advertising_academic_scraper
     handler: lambda_web_scraper.socialscience_communication_advertising_academic_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
 
   # Social Science Academic 스크래퍼
   socialscience_academic_scraper:
-    name: socialscience_academic_scraper
+    name: ${self:provider.stage}-socialscience_academic_scraper
     handler: lambda_web_scraper.socialscience_academic_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
 
   # Science Technology Security Academic 스크래퍼
   sciencetechnology_security_academic_scraper:
-    name: sciencetechnology_security_academic_scraper
+    name: ${self:provider.stage}-sciencetechnology_security_academic_scraper
     handler: lambda_web_scraper.sciencetechnology_security_academic_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
 
   # Science Technology Chemistry Academic 스크래퍼
   sciencetechnology_chemistry_academic_scraper:
-    name: sciencetechnology_chemistry_academic_scraper
+    name: ${self:provider.stage}-sciencetechnology_chemistry_academic_scraper
     handler: lambda_web_scraper.sciencetechnology_chemistry_academic_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
 
   # Physical Education Academic 스크래퍼
   physicaleducation_academic_scraper:
-    name: physicaleducation_academic_scraper
+    name: ${self:provider.stage}-physicaleducation_academic_scraper
     handler: lambda_web_scraper.physicaleducation_academic_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
 
   # Architecture Academic 스크래퍼
   architecture_academic_scraper:
-    name: architecture_academic_scraper
+    name: ${self:provider.stage}-architecture_academic_scraper
     handler: lambda_web_scraper.architecture_academic_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
 
   # Arts Academic 스크래퍼
   arts_academic_scraper:
-    name: arts_academic_scraper
+    name: ${self:provider.stage}-arts_academic_scraper
     handler: lambda_web_scraper.arts_academic_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
 
   # Automative Engineering Academic 스크래퍼
   automativeengineering_academic_scraper:
-    name: automativeengineering_academic_scraper
+    name: ${self:provider.stage}-automativeengineering_academic_scraper
     handler: lambda_web_scraper.automativeengineering_academic_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
 
   # Creative Engineering Advanced Materials Academic 스크래퍼
   creativeengineering_advancedmaterials_academic_scraper:
-    name: creativeengineering_advancedmaterials_academic_scraper
+    name: ${self:provider.stage}-creativeengineering_advancedmaterials_academic_scraper
     handler: lambda_web_scraper.creativeengineering_advancedmaterials_academic_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
 
   # Creative Engineering Civil Academic 스크래퍼
   creativeengineering_civil_academic_scraper:
-    name: creativeengineering_civil_academic_scraper
+    name: ${self:provider.stage}-creativeengineering_civil_academic_scraper
     handler: lambda_web_scraper.creativeengineering_civil_academic_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
 
   # Creative Engineering Mechanical Academic 스크래퍼
   creativeengineering_mechanical_academic_scraper:
-    name: creativeengineering_mechanical_academic_scraper
+    name: ${self:provider.stage}-creativeengineering_mechanical_academic_scraper
     handler: lambda_web_scraper.creativeengineering_mechanical_academic_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
 
   # Design Automotive Academic 스크래퍼
   design_automotive_academic_scraper:
-    name: design_automotive_academic_scraper
+    name: ${self:provider.stage}-design_automotive_academic_scraper
     handler: lambda_web_scraper.design_automotive_academic_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
 
   # Design Ceramics Academic 스크래퍼
   design_ceramics_academic_scraper:
-    name: design_ceramics_academic_scraper
+    name: ${self:provider.stage}-design_ceramics_academic_scraper
     handler: lambda_web_scraper.design_ceramics_academic_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
 
   # Design Industrial Academic 스크래퍼
   design_industrial_academic_scraper:
-    name: design_industrial_academic_scraper
+    name: ${self:provider.stage}-design_industrial_academic_scraper
     handler: lambda_web_scraper.design_industrial_academic_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
 
   # Design Metalwork Academic 스크래퍼
   design_metalwork_academic_scraper:
-    name: design_metalwork_academic_scraper
+    name: ${self:provider.stage}-design_metalwork_academic_scraper
     handler: lambda_web_scraper.design_metalwork_academic_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
 
   # Design Visual Academic 스크래퍼
   design_visual_academic_scraper:
-    name: design_visual_academic_scraper
+    name: ${self:provider.stage}-design_visual_academic_scraper
     handler: lambda_web_scraper.design_visual_academic_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
 
   # Future Mobility Academic 스크래퍼
   futuremobility_academic_scraper:
-    name: futuremobility_academic_scraper
+    name: ${self:provider.stage}-futuremobility_academic_scraper
     handler: lambda_web_scraper.futuremobility_academic_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
 
   # Global Humanities Eurasian Academic 스크래퍼
   globalhumanities_eurasian_academic_scraper:
-    name: globalhumanities_eurasian_academic_scraper
+    name: ${self:provider.stage}-globalhumanities_eurasian_academic_scraper
     handler: lambda_web_scraper.globalhumanities_eurasian_academic_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
 
   # Law Academic 스크래퍼
   law_academic_scraper:
-    name: law_academic_scraper
+    name: ${self:provider.stage}-law_academic_scraper
     handler: lambda_web_scraper.law_academic_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
 
   # LINC Academic 스크래퍼
   linc_academic_scraper:
-    name: linc_academic_scraper
+    name: ${self:provider.stage}-linc_academic_scraper
     handler: lambda_web_scraper.linc_academic_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
 
   # NCCOSS General 스크래퍼
   nccoss_general_scraper:
-    name: nccoss_general_scraper
+    name: ${self:provider.stage}-nccoss_general_scraper
     handler: lambda_web_scraper.nccoss_general_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
 
   # Computer Science Academic RSS 스크래퍼
   computerscience_academic_rss_scraper:
-    name: computerscience_academic_rss_scraper
+    name: ${self:provider.stage}-computerscience_academic_rss_scraper
     handler: lambda_web_scraper.computerscience_academic_rss_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
 
   # Creative Engineering Electrical Academic RSS 스크래퍼
   creativeengineering_electrical_academic_rss_scraper:
-    name: creativeengineering_electrical_academic_rss_scraper
+    name: ${self:provider.stage}-creativeengineering_electrical_academic_rss_scraper
     handler: lambda_web_scraper.creativeengineering_electrical_academic_rss_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
 
   # Global Humanities Korean History Academic RSS 스크래퍼
   globalhumanities_koreanhistory_academic_rss_scraper:
-    name: globalhumanities_koreanhistory_academic_rss_scraper
+    name: ${self:provider.stage}-globalhumanities_koreanhistory_academic_rss_scraper
     handler: lambda_web_scraper.globalhumanities_koreanhistory_academic_rss_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
 
   # Dormitory General RSS 스크래퍼
   dormitory_general_rss_scraper:
-    name: dormitory_general_rss_scraper
+    name: ${self:provider.stage}-dormitory_general_rss_scraper
     handler: lambda_web_scraper.dormitory_general_rss_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
 
   # Economic Commerce Academic RSS 스크래퍼
   economiccommerce_academic_rss_scraper:
-    name: economiccommerce_academic_rss_scraper
+    name: ${self:provider.stage}-economiccommerce_academic_rss_scraper
     handler: lambda_web_scraper.economiccommerce_academic_rss_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
 
   # Creative Engineering Academic RSS 스크래퍼
   creativeengineering_academic_rss_scraper:
-    name: creativeengineering_academic_rss_scraper
+    name: ${self:provider.stage}-creativeengineering_academic_rss_scraper
     handler: lambda_web_scraper.creativeengineering_academic_rss_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
 
   # Culture Academic RSS 스크래퍼
   culture_academic_rss_scraper:
-    name: culture_academic_rss_scraper
+    name: ${self:provider.stage}-culture_academic_rss_scraper
     handler: lambda_web_scraper.culture_academic_rss_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
 
   # Teaching Academic RSS 스크래퍼
   teaching_academic_rss_scraper:
-    name: teaching_academic_rss_scraper
+    name: ${self:provider.stage}-teaching_academic_rss_scraper
     handler: lambda_web_scraper.teaching_academic_rss_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
 
   # Global Humanities Academic RSS 스크래퍼
   globalhumanities_academic_rss_scraper:
-    name: globalhumanities_academic_rss_scraper
+    name: ${self:provider.stage}-globalhumanities_academic_rss_scraper
     handler: lambda_web_scraper.globalhumanities_academic_rss_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
 
   # Global Humanities Korean Academic RSS 스크래퍼
   globalhumanities_korean_academic_rss_scraper:
-    name: globalhumanities_korean_academic_rss_scraper
+    name: ${self:provider.stage}-globalhumanities_korean_academic_rss_scraper
     handler: lambda_web_scraper.globalhumanities_korean_academic_rss_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
 
   # Global Humanities English Academic RSS 스크래퍼
   globalhumanities_english_academic_rss_scraper:
-    name: globalhumanities_english_academic_rss_scraper
+    name: ${self:provider.stage}-globalhumanities_english_academic_rss_scraper
     handler: lambda_web_scraper.globalhumanities_english_academic_rss_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
 
   # Global Humanities Chinese Academic RSS 스크래퍼
   globalhumanities_chinese_academic_rss_scraper:
-    name: globalhumanities_chinese_academic_rss_scraper
+    name: ${self:provider.stage}-globalhumanities_chinese_academic_rss_scraper
     handler: lambda_web_scraper.globalhumanities_chinese_academic_rss_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
