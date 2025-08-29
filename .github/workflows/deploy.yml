@@ -1,11 +1,11 @@
 # GitHub Actions
-name: Deploy (migrate-to-lambda)
+name: Deploy (develop)
 
 ## 트리거: 지정 브랜치에 push될 때
 on:
   push:
     branches:
-      - migrate-to-lambda
+      - develop
 
 permissions:
   contents: read
