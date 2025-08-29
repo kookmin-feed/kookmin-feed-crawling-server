@@ -1,5 +1,5 @@
 # GitHub Actions
-name: Deploy (dev)
+name: Deploy
 
 ## 트리거: 지정 브랜치에 push될 때
 on:
@@ -50,14 +50,29 @@ jobs:
       - name: Install Node dependencies
         run: npm ci --no-audit --no-fund
 
-      # GitHub Secrets 값을 파일(envs/config.{stage}.json)로 생성
-      - name: Create envs config from secrets (${{ env.STAGE }})
+      # GitHub Secrets 값을 파일(envs/config.dev.json)로 생성 (dev 환경)
+      - name: Create envs config from secrets (dev)
+        if: env.STAGE == 'dev'
         run: |
           mkdir -p envs
-          cat > envs/config.${{ env.STAGE }}.json <<'JSON'
+          cat > envs/config.dev.json <<'JSON'
           {
             "MONGODB_URI": "${{ secrets.MONGODB_URI }}",
             "DB_NAME": "${{ secrets.DB_NAME }}",
+            "SLACK_BOT_TOKEN": "${{ secrets.SLACK_BOT_TOKEN }}",
+            "SLACK_CHANNEL_ID": "${{ secrets.SLACK_CHANNEL_ID }}"
+          }
+          JSON
+
+      # GitHub Secrets 값을 파일(envs/config.prod.json)로 생성 (prod 환경)
+      - name: Create envs config from secrets (prod)
+        if: env.STAGE == 'prod'
+        run: |
+          mkdir -p envs
+          cat > envs/config.prod.json <<'JSON'
+          {
+            "MONGODB_URI": "${{ secrets.PROD_MONGODB_URI }}",
+            "DB_NAME": "${{ secrets.PROD_DB_NAME }}",
             "SLACK_BOT_TOKEN": "${{ secrets.SLACK_BOT_TOKEN }}",
             "SLACK_CHANNEL_ID": "${{ secrets.SLACK_CHANNEL_ID }}"
           }
