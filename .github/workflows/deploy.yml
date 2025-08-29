@@ -1,11 +1,12 @@
 # GitHub Actions
-name: Deploy (develop)
+name: Deploy (dev)
 
 ## 트리거: 지정 브랜치에 push될 때
 on:
   push:
     branches:
-      - develop
+      - dev
+      - prod
 
 permissions:
   contents: read
@@ -18,10 +19,10 @@ concurrency:
 ## 배포 jobs 정의
 jobs:
   deploy:
-    name: Serverless deploy (dev)
+    name: Serverless deploy (${{ github.ref_name }})
     runs-on: ubuntu-latest
     env:
-      STAGE: dev  # dev 스테이지
+      STAGE: ${{ github.ref_name }}
       AWS_REGION: ap-northeast-2
       TZ: Asia/Seoul
       SLS_TELEMETRY_DISABLED: '1'
@@ -49,8 +50,8 @@ jobs:
       - name: Install Node dependencies
         run: npm ci --no-audit --no-fund
 
-      # GitHub Secrets 값을 파일(envs/config.dev.json)로 생성
-      - name: Create envs config from secrets (dev)
+      # GitHub Secrets 값을 파일(envs/config.{stage}.json)로 생성
+      - name: Create envs config from secrets (${{ env.STAGE }})
         run: |
           mkdir -p envs
           cat > envs/config.${{ env.STAGE }}.json <<'JSON'
@@ -91,6 +92,6 @@ jobs:
       - name: Serverless version
         run: npx serverless --version
 
-      # 실제 배포 단계 — serverless.yml 설정을 기준으로 dev 스테이지에 배포
-      - name: Deploy to AWS (dev)
+      # 실제 배포 단계 — serverless.yml 설정을 기준으로 동적 스테이지에 배포
+      - name: Deploy to AWS (${{ env.STAGE }})
         run: npx serverless deploy --stage ${{ env.STAGE }}
