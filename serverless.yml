@@ -392,3 +392,10 @@ functions:
     handler: lambda_web_scraper.university_thursdaylecture_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
+
+  # Climate Change Academic 스크래퍼
+  climatechange_academic_scraper:
+    name: ${self:provider.stage}-climatechange_academic_scraper
+    handler: lambda_web_scraper.climatechange_academic_handler.handler
+    layers:
+      - { Ref: ScraperDependenciesLambdaLayer }

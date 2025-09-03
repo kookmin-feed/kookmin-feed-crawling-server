@@ -65,7 +65,8 @@
             "scraper_types": [
                 "LINC_ACADEMIC",
                 "DORMITORY_GENERAL_RSS",
-                "NCCOSS_GENERAL"
+                "NCCOSS_GENERAL",
+                "CLIMATECHANGE_ACADEMIC"
             ]
         },
         "AUTOMOTIVEENGINEERING_CATEGORY": {

@@ -314,6 +314,13 @@
             "url": "https://nccoss.kookmin.ac.kr/NCCOSS/community/notice.do",
             "scraper_class_name": "NccossGeneralScraper",
             "scraper_lambda_function_name": "nccoss_general_scraper"
+        },
+        "CLIMATECHANGE_ACADEMIC": {
+            "type_name": "CLIMATECHANGE_ACADEMIC",
+            "korean_name": "기후변화대응사업단 학사공지",
+            "url": "https://cms.kookmin.ac.kr/climatechange/community/notice.do",
+            "scraper_class_name": "ClimatechangeAcademicScraper",
+            "scraper_lambda_function_name": "climatechange_academic_scraper"
         }
     }
 }
