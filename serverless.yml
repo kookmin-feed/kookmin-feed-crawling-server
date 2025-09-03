@@ -404,5 +404,8 @@ functions:
   library_general_scraper:
     name: ${self:provider.stage}-library_general_scraper
     handler: lambda_web_scraper.library_general_handler.handler
+    timeout: 90
+    memorySize: 1536
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
+      - arn:aws:lambda:ap-northeast-2:764866452798:layer:playwright:28

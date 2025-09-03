@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 import pytz
 from typing import Dict, Any
 import re
+import os
 from playwright.sync_api import sync_playwright
 from bs4 import BeautifulSoup
 from common_utils import (
@@ -17,9 +18,40 @@ def fetch_page_with_playwright(url: str, timeout: int = 30000) -> BeautifulSoup:
     try:
         print(f"🔍 [PLAYWRIGHT] 요청 시작: {url}")
 
+        # AWS Lambda 환경 감지
+        is_lambda = bool(os.environ.get("AWS_LAMBDA_FUNCTION_NAME"))
+
+        # Lambda 환경에서 Playwright 설정
+        if is_lambda:
+            # Lambda 환경에서는 /tmp에 브라우저 바이너리가 필요
+            os.environ["PLAYWRIGHT_BROWSERS_PATH"] = "/opt/playwright"
+
         with sync_playwright() as p:
-            # 헤드리스 브라우저 실행
-            browser = p.chromium.launch(headless=True)
+            # Lambda 환경에 맞는 브라우저 설정
+            if is_lambda:
+                browser = p.chromium.launch(
+                    headless=True,
+                    args=[
+                        "--no-sandbox",
+                        "--disable-setuid-sandbox",
+                        "--disable-dev-shm-usage",
+                        "--disable-accelerated-2d-canvas",
+                        "--no-first-run",
+                        "--no-zygote",
+                        "--single-process",
+                        "--disable-gpu",
+                        "--disable-background-timer-throttling",
+                        "--disable-backgrounding-occluded-windows",
+                        "--disable-renderer-backgrounding",
+                        "--disable-web-security",
+                        "--disable-features=TranslateUI",
+                        "--disable-extensions",
+                    ],
+                )
+            else:
+                # 로컬 환경
+                browser = p.chromium.launch(headless=True)
+
             page = browser.new_page()
 
             # User-Agent 설정
