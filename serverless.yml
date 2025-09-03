@@ -385,3 +385,10 @@ functions:
     handler: lambda_web_scraper.university_bukakpoliticalforum_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
+
+  # University Thursday Lecture 스크래퍼
+  university_thursdaylecture_scraper:
+    name: ${self:provider.stage}-university_thursdaylecture_scraper
+    handler: lambda_web_scraper.university_thursdaylecture_handler.handler
+    layers:
+      - { Ref: ScraperDependenciesLambdaLayer }
