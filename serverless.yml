@@ -408,4 +408,3 @@ functions:
     memorySize: 1536
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
-      - arn:aws:lambda:ap-northeast-2:764866452798:layer:playwright:28
