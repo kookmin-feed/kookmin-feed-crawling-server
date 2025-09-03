@@ -378,3 +378,10 @@ functions:
     handler: lambda_web_scraper.globalhumanities_chinese_academic_rss_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
+
+  # University Bukak Political Forum 스크래퍼
+  university_bukakpoliticalforum_scraper:
+    name: ${self:provider.stage}-university_bukakpoliticalforum_scraper
+    handler: lambda_web_scraper.university_bukakpoliticalforum_handler.handler
+    layers:
+      - { Ref: ScraperDependenciesLambdaLayer }
