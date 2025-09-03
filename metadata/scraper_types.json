@@ -321,6 +321,13 @@
             "url": "https://cms.kookmin.ac.kr/climatechange/community/notice.do",
             "scraper_class_name": "ClimatechangeAcademicScraper",
             "scraper_lambda_function_name": "climatechange_academic_scraper"
+        },
+        "LIBRARY_GENERAL": {
+            "type_name": "LIBRARY_GENERAL",
+            "korean_name": "성곡도서관 일반공지",
+            "url": "https://lib.kookmin.ac.kr/library-guide/notice",
+            "scraper_class_name": "LibraryGeneralScraper",
+            "scraper_lambda_function_name": "library_general_scraper"
         }
     }
 }

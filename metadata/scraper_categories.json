@@ -130,6 +130,12 @@
                 "GLOBALHUMANITIES_CHINESE_ACADEMIC_RSS",
                 "GLOBALHUMANITIES_EURASIAN_ACADEMIC"
             ]
+        },
+        "LIBRARY_CATEGORY": {
+            "korean_name": "성곡도서관",
+            "scraper_types": [
+                "LIBRARY_GENERAL"
+            ]
         }
     }
 }

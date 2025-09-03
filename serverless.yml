@@ -399,3 +399,10 @@ functions:
     handler: lambda_web_scraper.climatechange_academic_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
+
+  # Library General 스크래퍼
+  library_general_scraper:
+    name: ${self:provider.stage}-library_general_scraper
+    handler: lambda_web_scraper.library_general_handler.handler
+    layers:
+      - { Ref: ScraperDependenciesLambdaLayer }
