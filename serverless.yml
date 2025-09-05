@@ -18,6 +18,12 @@ provider:
     SLACK_BOT_TOKEN: ${file(envs/config.${self:provider.stage, 'dev'}.json):SLACK_BOT_TOKEN}
     SLACK_CHANNEL_ID: ${file(envs/config.${self:provider.stage, 'dev'}.json):SLACK_CHANNEL_ID}
 
+# Docker 기반 배포를 위한 Custom 설정
+custom:
+  ecrRepositoryName: kookmin-feed-crawling-server
+  accountId: 558793517018
+  libraryGeneralImage: library-general-${self:provider.stage}
+
 package:
   individually: false
   patterns:
@@ -400,11 +406,10 @@ functions:
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
 
-  # Library General 스크래퍼
+  # 🐳 Library General 스크래퍼 (Container Image 사용 - Playwright 지원)
   library_general_scraper:
     name: ${self:provider.stage}-library_general_scraper
-    handler: lambda_web_scraper.library_general_handler.handler
-    timeout: 90
-    memorySize: 1536
-    layers:
-      - { Ref: ScraperDependenciesLambdaLayer }
+    image:
+      uri: ${self:custom.accountId}.dkr.ecr.${self:provider.region}.amazonaws.com/${self:custom.ecrRepositoryName}:${self:custom.libraryGeneralImage}
+    timeout: 120
+    memorySize: 3008
