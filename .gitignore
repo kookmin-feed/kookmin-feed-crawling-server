@@ -55,3 +55,5 @@ legacy_web_scraper/
 rss_notice_scraper.py
 
 .github/
+
+*.txt
