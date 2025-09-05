@@ -1,260 +1,293 @@
-from datetime import datetime, timedelta
-import pytz
-from typing import Dict, Any
 import re
-import os
-from playwright.sync_api import sync_playwright
-from bs4 import BeautifulSoup
-from common_utils import (
-    get_recent_notices,
-    save_notices_to_db,
-    send_slack_notification,
-)
+from datetime import datetime, timedelta
+from typing import Dict, Any
+import pytz
+
+from common_utils import get_recent_notices, save_notices_to_db, send_slack_notification
 
 
-def fetch_page_with_playwright(url: str, timeout: int = 30000) -> BeautifulSoup:
-    """Playwright를 사용하여 동적 콘텐츠가 로드된 페이지를 가져와 BeautifulSoup 객체로 반환"""
-
+def parse_date(date_str: str, kst: pytz.timezone) -> datetime:
+    """
+    날짜 문자열을 파싱하여 datetime 객체로 변환
+    """
     try:
-        print(f"🔍 [PLAYWRIGHT] 요청 시작: {url}")
+        # "9월 4일" 형식 파싱
+        if "월" in date_str and "일" in date_str:
+            month_day_match = re.search(r"(\d{1,2})월\s*(\d{1,2})일", date_str)
+            if month_day_match:
+                month = int(month_day_match.group(1))
+                day = int(month_day_match.group(2))
+                current_year = datetime.now(kst).year
+                return kst.localize(datetime(current_year, month, day))
 
-        # AWS Lambda 환경 감지
-        is_lambda = bool(os.environ.get("AWS_LAMBDA_FUNCTION_NAME"))
+        # 기본값: 현재 시간
+        return datetime.now(kst)
+    except Exception as e:
+        print(f"⚠️ [PARSER] 날짜 파싱 실패: {date_str}, 오류: {e}")
+        return datetime.now(kst)
 
-        # Lambda 환경에서 Playwright 설정
-        if is_lambda:
-            # Lambda 환경에서는 /tmp에 브라우저 바이너리가 필요
-            os.environ["PLAYWRIGHT_BROWSERS_PATH"] = "/opt/playwright"
 
-        with sync_playwright() as p:
-            # Lambda 환경에 맞는 브라우저 설정
-            if is_lambda:
-                browser = p.chromium.launch(
-                    headless=True,
-                    args=[
-                        "--no-sandbox",
-                        "--disable-setuid-sandbox",
-                        "--disable-dev-shm-usage",
-                        "--disable-accelerated-2d-canvas",
-                        "--no-first-run",
-                        "--no-zygote",
-                        "--single-process",
-                        "--disable-gpu",
-                        "--disable-background-timer-throttling",
-                        "--disable-backgrounding-occluded-windows",
-                        "--disable-renderer-backgrounding",
-                        "--disable-web-security",
-                        "--disable-features=TranslateUI",
-                        "--disable-extensions",
-                    ],
-                )
-            else:
-                # 로컬 환경
-                browser = p.chromium.launch(headless=True)
+def _setup_browser():
+    """브라우저 설정 및 페이지 생성"""
+    from playwright.sync_api import sync_playwright
 
-            page = browser.new_page()
+    p = sync_playwright().start()
+    browser = p.chromium.launch(
+        headless=True,
+        args=[
+            "--no-sandbox",
+            "--disable-setuid-sandbox",
+            "--disable-dev-shm-usage",
+            "--disable-accelerated-2d-canvas",
+            "--no-first-run",
+            "--no-zygote",
+            "--single-process",
+            "--disable-gpu",
+            "--disable-background-timer-throttling",
+            "--disable-backgrounding-occluded-windows",
+            "--disable-renderer-backgrounding",
+            "--disable-web-security",
+            "--disable-features=TranslateUI",
+            "--disable-extensions",
+        ],
+    )
 
-            # User-Agent 설정
-            page.set_extra_http_headers(
-                {
-                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
-                }
+    page = browser.new_page()
+    page.set_extra_http_headers(
+        {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+        }
+    )
+
+    return p, browser, page
+
+
+def _navigate_to_main_page(page, url):
+    """메인 페이지로 이동 및 테이블 로딩 대기"""
+    page.goto(url, timeout=30000)
+    page.wait_for_selector("table.ikc-bulletins", timeout=10000)
+    page.wait_for_timeout(2000)
+
+
+def _get_notice_rows(page):
+    """공지사항 행들을 가져오기 (최신 10개만)"""
+    rows = page.query_selector_all("table.ikc-bulletins tbody tr.ng-star-inserted")
+    rows = rows[:10]  # 최신순으로 10개만 처리
+    print(f"📊 [SCRAPER] 발견된 공지사항 수: {len(rows)} (최신 10개만 처리)")
+    return rows
+
+
+def _extract_title_from_row(row, index):
+    """행에서 제목 추출"""
+    title_element = row.query_selector("td:nth-child(2) span")
+    if not title_element:
+        print(f"⚠️ [SCRAPER] 공지사항 {index+1} 제목 요소를 찾을 수 없음")
+        return None
+
+    title = title_element.evaluate("el => el.textContent").strip()
+    print(f"📰 [SCRAPER] 제목: '{title}'")
+    return title, title_element
+
+
+def _extract_date_from_detail_page(page, kst):
+    """상세 페이지에서 날짜 정보 추출"""
+    page.wait_for_timeout(2000)
+
+    date_text = ""
+    properties_elements = page.query_selector_all("ul.ikc-bulletin-properties li span")
+
+    if len(properties_elements) >= 2:
+        date_text = properties_elements[1].text_content().strip()
+
+        # 시간 형식인지 확인 ("오전 9:14", "오후 2:30" 등)
+        if re.match(r"(오전|오후)\s+\d{1,2}:\d{2}", date_text):
+            date_text = datetime.now(kst).strftime("%m월 %d일")
+        elif not re.match(r"\d{1,2}월\s+\d{1,2}일", date_text):
+            date_text = datetime.now(kst).strftime("%m월 %d일")
+    else:
+        date_text = datetime.now(kst).strftime("%m월 %d일")
+
+    return parse_date(date_text, kst)
+
+
+def _create_notice_data(title, link, published_date):
+    """공지사항 데이터 생성"""
+    return {
+        "title": title,
+        "link": link,
+        "published": published_date.isoformat(),
+        "scraper_type": "library_general",
+    }
+
+
+def _return_to_main_page(page, url):
+    """메인 페이지로 돌아가기"""
+    page.goto(url, timeout=30000)
+    page.wait_for_selector("table.ikc-bulletins", timeout=10000)
+    page.wait_for_timeout(1000)
+
+
+def _process_single_notice(page, row, index, url, recent_titles, recent_links, kst):
+    """단일 공지사항 처리"""
+    try:
+        print(f"🔍 [SCRAPER] 공지사항 {index+1} 처리 시작")
+
+        # 제목 추출
+        title_info = _extract_title_from_row(row, index)
+        if not title_info:
+            return None
+
+        title, title_element = title_info
+
+        # 기존 공지사항 확인
+        if title in recent_titles:
+            print(f"♻️ [SCRAPER] 기존 공지사항 (스킵): {title[:30]}...")
+            return None
+
+        # 제목 클릭하여 상세 페이지로 이동
+        title_element.click()
+        page.wait_for_timeout(3000)
+        actual_link = page.url
+
+        # 링크 중복 확인
+        if actual_link in recent_links:
+            print(f"♻️ [SCRAPER] 기존 링크 (스킵): {actual_link}")
+            _return_to_main_page(page, url)
+            return None
+
+        # 상세 페이지에서 날짜 추출
+        try:
+            published = _extract_date_from_detail_page(page, kst)
+            notice_data = _create_notice_data(title, actual_link, published)
+
+            # 30일 이내 필터링
+            thirty_days_ago = datetime.now(kst) - timedelta(days=30)
+            published_date = datetime.fromisoformat(
+                notice_data["published"].replace("Z", "+00:00")
             )
 
-            # 페이지 이동 및 로딩 대기
-            page.goto(url, timeout=timeout)
+            if published_date >= thirty_days_ago:
+                print(f"🆕 [SCRAPER] 새로운 공지사항 추가: {title[:30]}...")
+                return notice_data
+            else:
+                print(f"⏰ [SCRAPER] 30일 이전 공지사항 제외: {title[:30]}...")
+                return None
 
-            # Angular 컴포넌트가 로드될 때까지 대기
-            # 공지사항 테이블이 나타날 때까지 기다림
-            try:
-                page.wait_for_selector("table.ikc-bulletins", timeout=10000)
-                print("✅ [PLAYWRIGHT] 테이블 로딩 완료")
-            except Exception as e:
-                print(f"⚠️ [PLAYWRIGHT] 테이블 로딩 대기 실패: {e}")
-                # 테이블이 없어도 페이지 콘텐츠는 가져와 봄
-
-            # 추가적으로 조금 더 대기 (동적 콘텐츠 완전 로딩)
-            page.wait_for_timeout(2000)
-
-            # HTML 콘텐츠 가져오기
-            html_content = page.content()
-            browser.close()
-
-            print(f"✅ [PLAYWRIGHT] 성공: {url}")
-
-            # BeautifulSoup 객체로 파싱
-            soup = BeautifulSoup(html_content, "html.parser")
-            return soup
+        except Exception as e:
+            print(f"⚠️ [SCRAPER] 상세 정보 추출 실패: {e}")
+            notice_data = _create_notice_data(title, actual_link, datetime.now(kst))
+            print(f"🆕 [SCRAPER] 기본 데이터로 공지사항 추가: {title[:30]}...")
+            return notice_data
 
     except Exception as e:
-        error_msg = f"Playwright 페이지 요청 실패: {url}, 오류: {str(e)}"
-        print(f"❌ [PLAYWRIGHT] {error_msg}")
-        raise Exception(error_msg)
+        print(f"⚠️ [SCRAPER] 공지사항 {index+1} 처리 중 오류: {e}")
+        return None
+    finally:
+        _return_to_main_page(page, url)
 
 
-def handler(event, context):
-    """
-    성곡도서관 일반공지 스크래퍼 Lambda Handler
-    """
+def _save_notices_to_db(new_notices):
+    """새로운 공지사항들을 DB에 저장"""
+    saved_count = 0
+    if new_notices:
+        print(f"💾 [DB] 저장 시도할 공지사항 수: {len(new_notices)}")
+        saved_count = save_notices_to_db(new_notices, "library_general")
+        print(f"💾 [DB] 실제 저장된 공지사항 수: {saved_count}")
 
-    print("🚀 [HANDLER] Lambda Handler 시작 - 성곡도서관 일반공지")
+        if saved_count != len(new_notices):
+            print(f"⚠️ [DB] 저장 실패: 시도 {len(new_notices)}개, 성공 {saved_count}개")
+    else:
+        print("ℹ️ [DB] 새로운 공지사항이 없어 저장하지 않음")
 
-    try:
-        # 동기 스크래퍼 실행
-        result = scrape_library_general()
-
-        return {
-            "statusCode": 200,
-        }
-
-    except Exception as e:
-        error_msg = f"Lambda Handler 실행 중 오류: {str(e)}"
-        print(f"❌ [HANDLER] {error_msg}")
-        send_slack_notification(error_msg, "library_general")
-        return {
-            "statusCode": 500,
-        }
+    return saved_count
 
 
 def scrape_library_general() -> Dict[str, Any]:
     """
-    성곡도서관 일반공지를 스크래핑하고 새로운 공지사항을 처리
+    성곡도서관 일반공지 스크래핑 함수
+    클릭 기반 스크래핑을 사용하여 실제 링크와 내용을 추출
     """
-
     url = "https://lib.kookmin.ac.kr/library-guide/notice"
     kst = pytz.timezone("Asia/Seoul")
 
     print(f"🌐 [SCRAPER] 스크래핑 시작 - URL: {url}")
 
     try:
-        # 웹페이지 가져오기 (Playwright 사용)
-        soup = fetch_page_with_playwright(url)
-
-        # 공지사항 목록 요소들 가져오기
-        elements = soup.select("table.ikc-bulletins tbody tr.ng-star-inserted")
-        print(f"📊 [SCRAPER] 발견된 공지사항 수: {len(elements)}")
-
-        # 기존 공지사항 확인 (MongoDB에서)
-        recent_notices = get_recent_notices("library_general")
-        recent_links = {notice.get("link") for notice in recent_notices}
-        recent_titles = {notice.get("title") for notice in recent_notices}
-
-        # 새로운 공지사항 파싱
+        p, browser, page = _setup_browser()
         new_notices = []
 
-        for element in elements:
-            notice = parse_notice_from_element(element, kst)
-            if notice:
-                # 30일 이내의 데이터만 필터링
-                thirty_days_ago = datetime.now(kst) - timedelta(days=30)
-                published_date = datetime.fromisoformat(
-                    notice["published"].replace("Z", "+00:00")
+        try:
+            _navigate_to_main_page(page, url)
+            rows = _get_notice_rows(page)
+
+            if not rows:
+                print("❌ [SCRAPER] 공지사항 행을 찾을 수 없음")
+                return {
+                    "statusCode": 500,
+                    "body": {"message": "공지사항을 찾을 수 없음"},
+                }
+
+            # 기존 공지사항 확인
+            recent_notices = get_recent_notices("library_general")
+            recent_links = {notice.get("link") for notice in recent_notices}
+            recent_titles = {notice.get("title") for notice in recent_notices}
+            print(f"📋 [DB] 기존 공지사항 수: {len(recent_notices)}")
+
+            # 각 공지사항 처리
+            for i in range(len(rows)):
+                # 매번 새로운 요소 쿼리 (ElementHandle 무효화 문제 해결)
+                current_rows = page.query_selector_all(
+                    "table.ikc-bulletins tbody tr.ng-star-inserted"
                 )
-                if published_date >= thirty_days_ago:
-                    # 중복 확인
-                    if (
-                        notice["link"] not in recent_links
-                        and notice["title"] not in recent_titles
-                    ):
-                        new_notices.append(notice)
-                        print(
-                            f"🆕 [SCRAPER] 새로운 공지사항: {notice['title'][:30]}..."
-                        )
-                else:
-                    print(
-                        f"⏰ [SCRAPER] 30일 이전 공지사항 제외: {notice['title'][:30]}..."
-                    )
+                if i >= len(current_rows):
+                    print(f"⚠️ [SCRAPER] 공지사항 {i+1} 인덱스 초과")
+                    continue
+
+                row = current_rows[i]
+                notice_data = _process_single_notice(
+                    page, row, i, url, recent_titles, recent_links, kst
+                )
+
+                if notice_data:
+                    new_notices.append(notice_data)
+
+        finally:
+            browser.close()
+            p.stop()
 
         print(f"📈 [SCRAPER] 새로운 공지사항 수: {len(new_notices)}")
+        saved_count = _save_notices_to_db(new_notices)
 
-        # 새로운 공지사항을 MongoDB에 저장
-        saved_count = 0
-        if new_notices:
-            saved_count = save_notices_to_db(new_notices, "library_general")
-            print(f"💾 [SCRAPER] 저장 완료: {saved_count}개")
-
-        result = {
-            "success": True,
-            "message": f"성곡도서관 일반공지 스크래핑 완료",
-            "total_found": len(elements),
-            "new_notices_count": len(new_notices),
-            "saved_count": saved_count,
-            "new_notices": new_notices,
+        return {
+            "statusCode": 200,
+            "body": {
+                "message": "스크래핑 완료",
+                "scraped_count": len(rows),
+                "new_count": len(new_notices),
+                "saved_count": saved_count,
+            },
         }
-
-        print(f"🎉 [SCRAPER] 스크래핑 완료")
-        return result
 
     except Exception as e:
         error_msg = f"스크래핑 중 오류: {str(e)}"
         print(f"❌ [SCRAPER] {error_msg}")
         send_slack_notification(error_msg, "library_general")
-        return {"success": False, "error": error_msg}
+        raise e
 
 
-def parse_notice_from_element(row, kst) -> Dict[str, Any]:
-    """HTML 요소에서 성곡도서관 공지 정보를 추출"""
+def handler(event, context):
+    """
+    AWS Lambda 핸들러 함수
+    """
+    print("🚀 [HANDLER] Lambda Handler 시작 - 성곡도서관 일반공지")
 
     try:
-        # 순번 추출
-        index_element = row.select_one(".ikc-bulletins-index span")
-        if not index_element:
-            return None
-
-        notice_index = index_element.text.strip()
-
-        # 제목 추출
-        title_element = row.select_one(".ikc-bulletins-title span")
-        if not title_element:
-            return None
-
-        title = title_element.text.strip()
-
-        # 링크 생성 (상세 페이지 링크가 없으므로 메인 페이지 + 순번으로 구성)
-        base_url = "https://lib.kookmin.ac.kr/library-guide/notice"
-        link = f"{base_url}#{notice_index}"
-
-        # 날짜 추출 - 작성자 정보에서 날짜 부분 찾기
-        date_elements = row.select(".ikc-bulletins-properties li span")
-        date_str = None
-
-        # date_elements: [작성자, 날짜, 조회수] 형태
-        if len(date_elements) >= 2:
-            date_text = date_elements[1].text.strip()
-
-            # "N월 N일" 패턴 확인
-            if re.match(r"\d{1,2}월\s+\d{1,2}일", date_text):
-                # "N월 N일" 형식을 현재 연도와 결합
-                month_day = date_text.replace("월", "").replace("일", "").strip()
-                try:
-                    month, day = month_day.split()
-                    current_year = datetime.now(kst).year
-                    date_str = f"{current_year}-{int(month):02d}-{int(day):02d}"
-                except ValueError:
-                    print(f"❌ [PARSE] 날짜 파싱 실패: {date_text}")
-                    date_str = datetime.now(kst).strftime("%Y-%m-%d")
-            # "오전/오후 시:분" 패턴도 확인 (혹시 모르니)
-            elif re.match(r"(오전|오후)\s+\d{1,2}:\d{2}", date_text):
-                # 오늘 날짜로 설정
-                date_str = datetime.now(kst).strftime("%Y-%m-%d")
-            else:
-                print(f"⚠️ [PARSE] 알 수 없는 날짜 형식: {date_text}")
-                date_str = datetime.now(kst).strftime("%Y-%m-%d")
-        else:
-            print(f"⚠️ [PARSE] 날짜 요소 부족: {len(date_elements)}개")
-            date_str = datetime.now(kst).strftime("%Y-%m-%d")
-
-        published = datetime.strptime(date_str, "%Y-%m-%d").replace(tzinfo=kst)
-
-        result = {
-            "title": title,
-            "link": link,
-            "published": published.isoformat(),
-            "scraper_type": "library_general",
-        }
-
+        result = scrape_library_general()
         return result
-
     except Exception as e:
-        print(f"❌ [PARSE] 공지사항 파싱 중 오류: {e}")
-        return None
+        error_msg = f"Lambda 핸들러 오류: {str(e)}"
+        print(f"❌ [HANDLER] {error_msg}")
+        return {
+            "statusCode": 500,
+            "body": {"message": error_msg},
+        }
