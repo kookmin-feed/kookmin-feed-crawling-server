@@ -7,4 +7,3 @@ slack-sdk==3.26.1
 boto3
 requests
 urllib3
-playwright==1.55.0
