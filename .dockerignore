@@ -1,0 +1,127 @@
+# 🐳 Docker 빌드 최적화를 위한 제외 파일 목록
+
+# Git 관련
+.git
+.gitignore
+.gitattributes
+
+# 문서 파일들
+*.md
+README*
+CHANGELOG*
+LICENSE*
+CONTRIBUTING*
+
+# 개발 도구 설정
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Python 관련
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# Node.js 관련 (package.json이 있지만 런타임에 불필요)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# 로그 파일
+*.log
+logs/
+
+# 운영체제 관련
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# 임시 파일
+*.tmp
+*.temp
+.tmp/
+.temp/
+
+# 백업 파일
+*.bak
+*.backup
+*.old
+
+# 환경 설정 (보안상 제외)
+.env
+.env.*
+!.env.example
+
+# 빌드 아티팩트
+dist/
+build/
+*.egg-info/
+
+# 테스트 관련
+test/
+tests/
+*_test.py
+test_*.py
+
+# Docker 관련 (중복 방지)
+Dockerfile.*
+.dockerignore
+docker-compose*.yml
+
+# AWS 관련
+.aws/
+*.pem
+
+# IDE 설정
+.vscode/
+.idea/
+*.sublime-*
+
+# 로컬 개발 관련
+.local/
+local/
+dev/
+
+# 스크립트 파일들 (런타임에 불필요)
+*.sh
+setup-*.sh
+deploy-*.sh
+
+# 예시 파일들
+example.*
+sample.*
+demo.*
+
+# 캐시 디렉토리
+.cache/
+cache/
+
+# 기타 개발 도구
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
