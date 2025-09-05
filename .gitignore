@@ -54,6 +54,4 @@ legacy_web_scraper/
 .DS_Store
 rss_notice_scraper.py
 
-.github/
-
 *.txt
