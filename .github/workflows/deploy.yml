@@ -7,6 +7,7 @@ on:
     branches:
       - dev
       - prod
+      - dockerize-for-dynamic-scraping
 
 permissions:
   contents: read
@@ -52,7 +53,7 @@ jobs:
 
       # GitHub Secrets 값을 파일(envs/config.dev.json)로 생성 (dev 환경)
       - name: Create envs config from secrets (dev)
-        if: env.STAGE == 'dev'
+        if: env.STAGE != 'prod'
         run: |
           mkdir -p envs
           cat > envs/config.dev.json <<'JSON'
