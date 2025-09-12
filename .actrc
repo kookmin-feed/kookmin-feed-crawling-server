@@ -1,0 +1,21 @@
+# act 설정 파일
+# GitHub Actions를 로컬에서 실행하기 위한 설정
+
+# 사용할 플랫폼 (Linux 컨테이너 사용)
+--platform ubuntu-latest=catthehacker/ubuntu:act-latest
+
+# 환경 변수 설정
+--env STAGE=dev
+--env AWS_REGION=ap-northeast-2
+--env TZ=Asia/Seoul
+--env SLS_TELEMETRY_DISABLED=1
+--env SLS_DEPRECATION_DISABLE=*
+
+# 시크릿 파일 사용 (로컬 테스트용)
+--secret-file .secrets
+
+# 바인드 마운트 (Docker 소켓 사용)
+--bind
+
+# 상세한 로그 출력
+--verbose
