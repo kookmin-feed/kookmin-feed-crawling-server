@@ -2,6 +2,9 @@
 .env
 envs/
 
+# act 로컬 테스트용 시크릿 파일
+.secrets
+
 # 히스토리 파일
 sw_notice_history.json
 
