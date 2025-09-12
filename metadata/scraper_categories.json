@@ -6,7 +6,9 @@
                 "UNIVERSITY_ACADEMIC",
                 "UNIVERSITY_SCHOLARSHIP",
                 "UNIVERSITY_SPECIALLECTURE",
-                "UNIVERSITY_CONTESTEVENT"
+                "UNIVERSITY_CONTESTEVENT",
+                "UNIVERSITY_BUKAKPOLITICALFORUM",
+                "UNIVERSITY_THURSDAYLECTURE"
             ]
         },
         "COMPUTERSCIENCE_CATEGORY": {

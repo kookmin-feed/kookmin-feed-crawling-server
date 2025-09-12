@@ -328,6 +328,20 @@
             "url": "https://lib.kookmin.ac.kr/library-guide/notice",
             "scraper_class_name": "LibraryGeneralScraper",
             "scraper_lambda_function_name": "library_general_scraper"
+        },
+        "UNIVERSITY_BUKAKPOLITICALFORUM": {
+            "type_name": "UNIVERSITY_BUKAKPOLITICALFORUM",
+            "korean_name": "북악정치포럼 학사공지",
+            "url": "https://www.kookmin.ac.kr/user/kmuNews/specBbs/bugAgForum/index.do",
+            "scraper_class_name": "UniversityBukakPoliticalforumScraper",
+            "scraper_lambda_function_name": "university_bukakpoliticalforum_scraper"
+        },
+        "UNIVERSITY_THURSDAYLECTURE": {
+            "type_name": "UNIVERSITY_THURSDAYLECTURE",
+            "korean_name": "목요특강 학사공지",
+            "url": "https://www.kookmin.ac.kr/user/kmuNews/specBbs/thursdayLecture/index.do",
+            "scraper_class_name": "UniversityThursdaylectureScraper",
+            "scraper_lambda_function_name": "university_thursdaylecture_scraper"
         }
     }
 }
