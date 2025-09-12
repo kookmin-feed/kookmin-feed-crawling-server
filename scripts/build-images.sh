@@ -14,14 +14,32 @@ echo "🚀 Multi-Target Docker 이미지 빌드 시작 - Stage: ${STAGE}"
 
 # Dockerfile에서 모든 stage 추출
 echo "🔍 Dockerfile에서 stage 분석 중..."
-STAGES=($(grep -E "^FROM.*AS" "$DOCKERFILE_PATH" | sed 's/.*AS //'))
+ALL_STAGES=($(grep -E "^FROM.*AS" "$DOCKERFILE_PATH" | sed 's/.*AS //'))
 
-if [ ${#STAGES[@]} -eq 0 ]; then
+if [ ${#ALL_STAGES[@]} -eq 0 ]; then
     echo "❌ Dockerfile에서 stage를 찾을 수 없습니다."
     exit 1
 fi
 
-echo "📋 발견된 stage들:"
+# base stage는 중간 단계이므로 ECR 푸시에서 제외
+STAGES=()
+for stage in "${ALL_STAGES[@]}"; do
+    if [ "$stage" != "base" ]; then
+        STAGES+=("$stage")
+    fi
+done
+
+echo "📋 발견된 모든 stage들:"
+for stage in "${ALL_STAGES[@]}"; do
+    if [ "$stage" = "base" ]; then
+        echo "  - ${stage} (중간 단계, ECR 푸시 제외)"
+    else
+        echo "  - ${stage}"
+    fi
+done
+
+echo ""
+echo "📦 ECR에 푸시할 최종 stage들:"
 for stage in "${STAGES[@]}"; do
     echo "  - ${stage}"
 done
