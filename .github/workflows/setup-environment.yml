@@ -1,0 +1,97 @@
+# 환경 설정 및 Python 레이어 빌드 전용 워크플로우
+name: Setup Environment
+
+on:
+  workflow_call:
+    inputs:
+      stage:
+        required: true
+        type: string
+        description: 'Deployment stage (dev/prod)'
+    outputs:
+      config-file:
+        description: 'Path to generated config file'
+        value: ${{ jobs.setup.outputs.config-file }}
+    secrets:
+      MONGODB_URI:
+        required: false
+      DB_NAME:
+        required: false
+      PROD_MONGODB_URI:
+        required: false
+      PROD_DB_NAME:
+        required: false
+      SLACK_BOT_TOKEN:
+        required: true
+      SLACK_CHANNEL_ID:
+        required: true
+
+jobs:
+  setup:
+    name: Setup Environment
+    runs-on: ubuntu-latest
+    outputs:
+      config-file: ${{ steps.create-config.outputs.config-file }}
+    env:
+      STAGE: ${{ inputs.stage }}
+      TZ: Asia/Seoul
+    steps:
+      # 저장소 코드 체크아웃
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Node.js 환경 설정 및 npm 캐시 사용
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      # Python 환경 설정 (Lambda 레이어 빌드용)
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # Node.js 의존성 설치 (serverless 플러그인 등)
+      - name: Install Node dependencies
+        run: npm ci --no-audit --no-fund
+
+      # GitHub Secrets 값을 파일(envs/config.dev.json)로 생성 (dev 환경)
+      - name: Create envs config from secrets (dev)
+        id: create-config
+        if: env.STAGE != 'prod'
+        run: |
+          mkdir -p envs
+          cat > envs/config.dev.json <<'JSON'
+          {
+            "MONGODB_URI": "${{ secrets.MONGODB_URI }}",
+            "DB_NAME": "${{ secrets.DB_NAME }}",
+            "SLACK_BOT_TOKEN": "${{ secrets.SLACK_BOT_TOKEN }}",
+            "SLACK_CHANNEL_ID": "${{ secrets.SLACK_CHANNEL_ID }}"
+          }
+          JSON
+          echo "config-file=envs/config.dev.json" >> $GITHUB_OUTPUT
+
+      # GitHub Secrets 값을 파일(envs/config.prod.json)로 생성 (prod 환경)
+      - name: Create envs config from secrets (prod)
+        id: create-config-prod
+        if: env.STAGE == 'prod'
+        run: |
+          mkdir -p envs
+          cat > envs/config.prod.json <<'JSON'
+          {
+            "MONGODB_URI": "${{ secrets.PROD_MONGODB_URI }}",
+            "DB_NAME": "${{ secrets.PROD_DB_NAME }}",
+            "SLACK_BOT_TOKEN": "${{ secrets.SLACK_BOT_TOKEN }}",
+            "SLACK_CHANNEL_ID": "${{ secrets.SLACK_CHANNEL_ID }}"
+          }
+          JSON
+          echo "config-file=envs/config.prod.json" >> $GITHUB_OUTPUT
+
+      # AWS Lambda Python 레이어 빌드 (requirements.txt 패키지들을 layer/python에 설치)
+      - name: Build Python layer
+        run: |
+          python -m pip install --upgrade pip
+          mkdir -p layer/python
+          pip install -r requirements.txt -t layer/python

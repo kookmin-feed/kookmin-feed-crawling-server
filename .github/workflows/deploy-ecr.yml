@@ -1,0 +1,167 @@
+# ECR 배포 전용 워크플로우
+name: Deploy to ECR
+
+on:
+  workflow_call:
+    inputs:
+      stage:
+        required: true
+        type: string
+        description: 'Deployment stage (dev/prod)'
+      aws_region:
+        required: false
+        type: string
+        default: 'ap-northeast-2'
+        description: 'AWS region'
+      build-info-file:
+        required: true
+        type: string
+        description: 'Path to build info file from build workflow'
+    outputs:
+      deploy-info-file:
+        description: 'Path to deploy info file'
+        value: ${{ jobs.deploy-ecr.outputs.deploy-info-file }}
+    secrets:
+      AWS_ACCESS_KEY_ID:
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        required: true
+
+jobs:
+  deploy-ecr:
+    name: Deploy to ECR
+    runs-on: ubuntu-latest
+    outputs:
+      deploy-info-file: ${{ steps.deploy-images.outputs.deploy-info-file }}
+    env:
+      STAGE: ${{ inputs.stage }}
+      AWS_REGION: ${{ inputs.aws_region }}
+      TZ: Asia/Seoul
+    steps:
+      # 저장소 코드 체크아웃
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # AWS 자격 증명 설정
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      # AWS 프로필 생성
+      - name: Create AWS named profile
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: |
+          aws configure set aws_access_key_id "$AWS_ACCESS_KEY_ID" --profile kookmin-feed
+          aws configure set aws_secret_access_key "$AWS_SECRET_ACCESS_KEY" --profile kookmin-feed
+          aws configure set region "$AWS_REGION" --profile kookmin-feed
+
+      # ECR 로그인 및 리포지토리 생성
+      - name: ECR login and repository setup
+        run: |
+          echo "📤 ECR 배포 시작 - Stage: ${{ env.STAGE }}"
+          
+          # 빌드 정보 파일 확인
+          BUILD_INFO_FILE="${{ inputs.build-info-file }}"
+          if [ ! -f "$BUILD_INFO_FILE" ]; then
+              echo "❌ 빌드 정보 파일을 찾을 수 없습니다: ${BUILD_INFO_FILE}"
+              exit 1
+          fi
+          
+          # 빌드 정보 로드
+          echo "📋 빌드 정보 로드 중..."
+          STAGE=$(grep "^STAGE=" "$BUILD_INFO_FILE" | cut -d'=' -f2)
+          REPOSITORY_NAME=$(grep "^REPOSITORY_NAME=" "$BUILD_INFO_FILE" | cut -d'=' -f2)
+          
+          # ECR 로그인
+          echo "🔐 ECR 로그인 중..."
+          aws ecr get-login-password --region ${{ env.AWS_REGION }} --profile kookmin-feed | docker login --username AWS --password-stdin 558793517018.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com
+          
+          # ECR 리포지토리 생성 (없는 경우)
+          echo "📦 ECR 리포지토리 확인/생성 중..."
+          aws ecr describe-repositories --repository-names ${REPOSITORY_NAME} --region ${{ env.AWS_REGION }} --profile kookmin-feed || \
+          aws ecr create-repository --repository-name ${REPOSITORY_NAME} --region ${{ env.AWS_REGION }} --profile kookmin-feed
+
+      # ECR에 Docker 이미지 푸시
+      - name: Push Docker images to ECR
+        id: deploy-images
+        run: |
+          echo "📤 이미지들을 ECR에 푸시 중..."
+          
+          BUILD_INFO_FILE="${{ inputs.build-info-file }}"
+          STAGE=$(grep "^STAGE=" "$BUILD_INFO_FILE" | cut -d'=' -f2)
+          REPOSITORY_NAME=$(grep "^REPOSITORY_NAME=" "$BUILD_INFO_FILE" | cut -d'=' -f2)
+          
+          # BUILT_IMAGES 배열을 직접 파싱 (Built Images 섹션만)
+          BUILT_IMAGES=()
+          in_built_images=false
+          while IFS= read -r line; do
+              if [[ "$line" == "# Built Images" ]]; then
+                  in_built_images=true
+                  continue
+              elif [[ "$line" == "" && "$in_built_images" == true ]]; then
+                  break
+              elif [[ "$in_built_images" == true && "$line" =~ ^[a-zA-Z0-9_-]+=.* ]]; then
+                  stage=$(echo "$line" | cut -d'=' -f1)
+                  tag=$(echo "$line" | cut -d'=' -f2)
+                  BUILT_IMAGES+=("${stage}:${tag}")
+              fi
+          done < "$BUILD_INFO_FILE"
+          
+          DEPLOYED_IMAGES=()
+          
+          for image_info in "${BUILT_IMAGES[@]}"; do
+              IFS=':' read -r stage tag <<< "$image_info"
+              
+              echo ""
+              echo "📦 ${stage} 이미지 ECR 푸시 중..."
+              
+              # ECR URI 생성
+              ECR_URI="558793517018.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${REPOSITORY_NAME}:${stage}-${{ env.STAGE }}"
+              
+              # ECR 태그 설정
+              docker tag "${tag}" "${ECR_URI}"
+              
+              # ECR에 푸시
+              if docker push "${ECR_URI}"; then
+                  echo "✅ ${stage} 이미지 ECR 푸시 성공: ${ECR_URI}"
+                  DEPLOYED_IMAGES+=("${stage}:${ECR_URI}")
+              else
+                  echo "❌ ${stage} 이미지 ECR 푸시 실패"
+                  exit 1
+              fi
+          done
+          
+          echo ""
+          echo "🎉 모든 이미지 ECR 배포 완료!"
+          echo ""
+          echo "📋 배포된 이미지들:"
+          for image_info in "${DEPLOYED_IMAGES[@]}"; do
+              IFS=':' read -r stage uri <<< "$image_info"
+              echo "  - ${stage}: ${uri}"
+          done
+          
+          # 배포 정보를 파일로 저장
+          DEPLOY_INFO_FILE=".deploy-info-${{ env.STAGE }}.txt"
+          echo "# Deploy Info for ${{ env.STAGE }}" > "$DEPLOY_INFO_FILE"
+          echo "DEPLOY_TIME=$(date -u +"%Y-%m-%dT%H:%M:%SZ")" >> "$DEPLOY_INFO_FILE"
+          echo "STAGE=${{ env.STAGE }}" >> "$DEPLOY_INFO_FILE"
+          echo "AWS_REGION=${{ env.AWS_REGION }}" >> "$DEPLOY_INFO_FILE"
+          echo "ACCOUNT_ID=558793517018" >> "$DEPLOY_INFO_FILE"
+          echo "REPOSITORY_NAME=${REPOSITORY_NAME}" >> "$DEPLOY_INFO_FILE"
+          echo "" >> "$DEPLOY_INFO_FILE"
+          echo "# Deployed Images" >> "$DEPLOY_INFO_FILE"
+          for image_info in "${DEPLOYED_IMAGES[@]}"; do
+              IFS=':' read -r stage uri <<< "$image_info"
+              echo "${stage}=${uri}" >> "$DEPLOY_INFO_FILE"
+          done
+          
+          echo ""
+          echo "💾 배포 정보가 ${DEPLOY_INFO_FILE}에 저장되었습니다."
+          
+          # GitHub Actions output 설정
+          echo "deploy-info-file=${DEPLOY_INFO_FILE}" >> $GITHUB_OUTPUT

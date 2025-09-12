@@ -1,4 +1,4 @@
-# GitHub Actions
+# GitHub Actions - 메인 배포 워크플로우
 name: Deploy
 
 ## 트리거: 지정 브랜치에 push될 때
@@ -19,283 +19,53 @@ concurrency:
 
 ## 배포 jobs 정의
 jobs:
-  deploy:
-    name: Serverless deploy (${{ github.ref_name }})
-    runs-on: ubuntu-latest
-    env:
-      STAGE: ${{ github.ref_name == 'prod' && 'prod' || 'dev' }}
-      AWS_REGION: ap-northeast-2
-      TZ: Asia/Seoul
-      SLS_TELEMETRY_DISABLED: '1'
-      SLS_DEPRECATION_DISABLE: '*'
-    # 실행 단계
-    steps:
-      # 저장소 코드 체크아웃
-      - name: Checkout
-        uses: actions/checkout@v4
+  # 1. 환경 설정 및 Python 레이어 빌드
+  setup-environment:
+    name: Setup Environment
+    uses: ./.github/workflows/setup-environment.yml
+    with:
+      stage: ${{ github.ref_name == 'prod' && 'prod' || 'dev' }}
+    secrets:
+      MONGODB_URI: ${{ secrets.MONGODB_URI }}
+      DB_NAME: ${{ secrets.DB_NAME }}
+      PROD_MONGODB_URI: ${{ secrets.PROD_MONGODB_URI }}
+      PROD_DB_NAME: ${{ secrets.PROD_DB_NAME }}
+      SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+      SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
 
-      # Node.js 환경 설정 및 npm 캐시 사용
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
+  # 2. Docker 이미지 빌드
+  build-images:
+    name: Build Docker Images
+    needs: setup-environment
+    uses: ./.github/workflows/build.yml
+    with:
+      stage: ${{ github.ref_name == 'prod' && 'prod' || 'dev' }}
+      aws_region: ap-northeast-2
+    secrets:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-      # Python 환경 설정 (Lambda 레이어 빌드용)
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
+  # 3. ECR에 Docker 이미지 배포
+  deploy-to-ecr:
+    name: Deploy to ECR
+    needs: build-images
+    uses: ./.github/workflows/deploy-ecr.yml
+    with:
+      stage: ${{ github.ref_name == 'prod' && 'prod' || 'dev' }}
+      aws_region: ap-northeast-2
+      build-info-file: ${{ needs.build-images.outputs.build-info-file }}
+    secrets:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-      # Node.js 의존성 설치 (serverless 플러그인 등)
-      - name: Install Node dependencies
-        run: npm ci --no-audit --no-fund
-
-      # GitHub Secrets 값을 파일(envs/config.dev.json)로 생성 (dev 환경)
-      - name: Create envs config from secrets (dev)
-        if: env.STAGE != 'prod'
-        run: |
-          mkdir -p envs
-          cat > envs/config.dev.json <<'JSON'
-          {
-            "MONGODB_URI": "${{ secrets.MONGODB_URI }}",
-            "DB_NAME": "${{ secrets.DB_NAME }}",
-            "SLACK_BOT_TOKEN": "${{ secrets.SLACK_BOT_TOKEN }}",
-            "SLACK_CHANNEL_ID": "${{ secrets.SLACK_CHANNEL_ID }}"
-          }
-          JSON
-
-      # GitHub Secrets 값을 파일(envs/config.prod.json)로 생성 (prod 환경)
-      - name: Create envs config from secrets (prod)
-        if: env.STAGE == 'prod'
-        run: |
-          mkdir -p envs
-          cat > envs/config.prod.json <<'JSON'
-          {
-            "MONGODB_URI": "${{ secrets.PROD_MONGODB_URI }}",
-            "DB_NAME": "${{ secrets.PROD_DB_NAME }}",
-            "SLACK_BOT_TOKEN": "${{ secrets.SLACK_BOT_TOKEN }}",
-            "SLACK_CHANNEL_ID": "${{ secrets.SLACK_CHANNEL_ID }}"
-          }
-          JSON
-
-      # GitHub Secrets로 AWS 자격 증명 설정 (OIDC 대신 액세스 키 사용)
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
-
-      # AWS 프로필 생성
-      - name: Create AWS named profile 'kookmin-feed'
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        run: |
-          aws configure set aws_access_key_id "$AWS_ACCESS_KEY_ID" --profile kookmin-feed
-          aws configure set aws_secret_access_key "$AWS_SECRET_ACCESS_KEY" --profile kookmin-feed
-          aws configure set region "$AWS_REGION" --profile kookmin-feed
-
-      # AWS Lambda Python 레이어 빌드 (requirements.txt 패키지들을 layer/python에 설치)
-      - name: Build Python layer
-        run: |
-          python -m pip install --upgrade pip
-          mkdir -p layer/python
-          pip install -r requirements.txt -t layer/python
-
-      # Docker 이미지 빌드 (Multi-Target Dockerfile의 모든 stage 자동 감지)
-      - name: Build Docker images
-        run: |
-          echo "🚀 Multi-Target Docker 이미지 빌드 시작 - Stage: ${{ env.STAGE }}"
-          
-          # Dockerfile에서 모든 stage 추출
-          echo "🔍 Dockerfile에서 stage 분석 중..."
-          ALL_STAGES=($(grep -E "^FROM.*AS" "Dockerfile" | sed 's/.*AS //'))
-          
-          if [ ${#ALL_STAGES[@]} -eq 0 ]; then
-              echo "❌ Dockerfile에서 stage를 찾을 수 없습니다."
-              exit 1
-          fi
-          
-          # base stage는 중간 단계이므로 ECR 푸시에서 제외
-          STAGES=()
-          for stage in "${ALL_STAGES[@]}"; do
-              if [ "$stage" != "base" ]; then
-                  STAGES+=("$stage")
-              fi
-          done
-          
-          echo "📋 발견된 모든 stage들:"
-          for stage in "${ALL_STAGES[@]}"; do
-              if [ "$stage" = "base" ]; then
-                  echo "  - ${stage} (중간 단계, ECR 푸시 제외)"
-              else
-                  echo "  - ${stage}"
-              fi
-          done
-          
-          echo ""
-          echo "📦 ECR에 푸시할 최종 stage들:"
-          for stage in "${STAGES[@]}"; do
-              echo "  - ${stage}"
-          done
-          
-          # 각 stage별로 이미지 빌드
-          echo ""
-          echo "🐳 각 stage별 Docker 이미지 빌드 중..."
-          
-          BUILT_IMAGES=()
-          REPOSITORY_NAME="kookmin-feed-crawling-server"
-          
-          for stage in "${STAGES[@]}"; do
-              echo ""
-              echo "📦 ${stage} 이미지 빌드 중..."
-              
-              # 이미지 태그 생성
-              IMAGE_TAG="${REPOSITORY_NAME}:${stage}-${{ env.STAGE }}"
-              
-              # Docker 빌드 실행 (Lambda 호환 아키텍처로 강제 빌드)
-              if docker build --platform linux/amd64 --target "${stage}" -t "${IMAGE_TAG}" .; then
-                  echo "✅ ${stage} 이미지 빌드 성공: ${IMAGE_TAG}"
-                  BUILT_IMAGES+=("${stage}:${IMAGE_TAG}")
-              else
-                  echo "❌ ${stage} 이미지 빌드 실패"
-                  exit 1
-              fi
-          done
-          
-          echo ""
-          echo "🎉 모든 이미지 빌드 완료!"
-          echo ""
-          echo "📋 빌드된 이미지들:"
-          for image_info in "${BUILT_IMAGES[@]}"; do
-              IFS=':' read -r stage tag <<< "$image_info"
-              echo "  - ${stage}: ${tag}"
-          done
-          
-          # 빌드된 이미지 정보를 파일로 저장
-          BUILD_INFO_FILE=".build-info-${{ env.STAGE }}.txt"
-          echo "# Build Info for ${{ env.STAGE }}" > "$BUILD_INFO_FILE"
-          echo "BUILD_TIME=$(date -u +"%Y-%m-%dT%H:%M:%SZ")" >> "$BUILD_INFO_FILE"
-          echo "STAGE=${{ env.STAGE }}" >> "$BUILD_INFO_FILE"
-          echo "REPOSITORY_NAME=${REPOSITORY_NAME}" >> "$BUILD_INFO_FILE"
-          echo "" >> "$BUILD_INFO_FILE"
-          echo "# Built Images" >> "$BUILD_INFO_FILE"
-          for image_info in "${BUILT_IMAGES[@]}"; do
-              IFS=':' read -r stage tag <<< "$image_info"
-              echo "${stage}=${tag}" >> "$BUILD_INFO_FILE"
-          done
-          
-          echo ""
-          echo "💾 빌드 정보가 ${BUILD_INFO_FILE}에 저장되었습니다."
-
-      # ECR 로그인 및 리포지토리 생성
-      - name: ECR login and repository setup
-        run: |
-          echo "📤 ECR 배포 시작 - Stage: ${{ env.STAGE }}"
-          
-          # 빌드 정보 파일 확인
-          BUILD_INFO_FILE=".build-info-${{ env.STAGE }}.txt"
-          if [ ! -f "$BUILD_INFO_FILE" ]; then
-              echo "❌ 빌드 정보 파일을 찾을 수 없습니다: ${BUILD_INFO_FILE}"
-              exit 1
-          fi
-          
-          # 빌드 정보 로드
-          echo "📋 빌드 정보 로드 중..."
-          STAGE=$(grep "^STAGE=" "$BUILD_INFO_FILE" | cut -d'=' -f2)
-          REPOSITORY_NAME=$(grep "^REPOSITORY_NAME=" "$BUILD_INFO_FILE" | cut -d'=' -f2)
-          
-          # ECR 로그인
-          echo "🔐 ECR 로그인 중..."
-          aws ecr get-login-password --region ${{ env.AWS_REGION }} --profile kookmin-feed | docker login --username AWS --password-stdin 558793517018.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com
-          
-          # ECR 리포지토리 생성 (없는 경우)
-          echo "📦 ECR 리포지토리 확인/생성 중..."
-          aws ecr describe-repositories --repository-names ${REPOSITORY_NAME} --region ${{ env.AWS_REGION }} --profile kookmin-feed || \
-          aws ecr create-repository --repository-name ${REPOSITORY_NAME} --region ${{ env.AWS_REGION }} --profile kookmin-feed
-
-      # ECR에 Docker 이미지 푸시
-      - name: Push Docker images to ECR
-        run: |
-          echo "📤 이미지들을 ECR에 푸시 중..."
-          
-          BUILD_INFO_FILE=".build-info-${{ env.STAGE }}.txt"
-          STAGE=$(grep "^STAGE=" "$BUILD_INFO_FILE" | cut -d'=' -f2)
-          REPOSITORY_NAME=$(grep "^REPOSITORY_NAME=" "$BUILD_INFO_FILE" | cut -d'=' -f2)
-          
-          # BUILT_IMAGES 배열을 직접 파싱 (Built Images 섹션만)
-          BUILT_IMAGES=()
-          in_built_images=false
-          while IFS= read -r line; do
-              if [[ "$line" == "# Built Images" ]]; then
-                  in_built_images=true
-                  continue
-              elif [[ "$line" == "" && "$in_built_images" == true ]]; then
-                  break
-              elif [[ "$in_built_images" == true && "$line" =~ ^[a-zA-Z0-9_-]+=.* ]]; then
-                  stage=$(echo "$line" | cut -d'=' -f1)
-                  tag=$(echo "$line" | cut -d'=' -f2)
-                  BUILT_IMAGES+=("${stage}:${tag}")
-              fi
-          done < "$BUILD_INFO_FILE"
-          
-          DEPLOYED_IMAGES=()
-          
-          for image_info in "${BUILT_IMAGES[@]}"; do
-              IFS=':' read -r stage tag <<< "$image_info"
-              
-              echo ""
-              echo "📦 ${stage} 이미지 ECR 푸시 중..."
-              
-              # ECR URI 생성
-              ECR_URI="558793517018.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${REPOSITORY_NAME}:${stage}-${{ env.STAGE }}"
-              
-              # ECR 태그 설정
-              docker tag "${tag}" "${ECR_URI}"
-              
-              # ECR에 푸시
-              if docker push "${ECR_URI}"; then
-                  echo "✅ ${stage} 이미지 ECR 푸시 성공: ${ECR_URI}"
-                  DEPLOYED_IMAGES+=("${stage}:${ECR_URI}")
-              else
-                  echo "❌ ${stage} 이미지 ECR 푸시 실패"
-                  exit 1
-              fi
-          done
-          
-          echo ""
-          echo "🎉 모든 이미지 ECR 배포 완료!"
-          echo ""
-          echo "📋 배포된 이미지들:"
-          for image_info in "${DEPLOYED_IMAGES[@]}"; do
-              IFS=':' read -r stage uri <<< "$image_info"
-              echo "  - ${stage}: ${uri}"
-          done
-          
-          # 배포 정보를 파일로 저장
-          DEPLOY_INFO_FILE=".deploy-info-${{ env.STAGE }}.txt"
-          echo "# Deploy Info for ${{ env.STAGE }}" > "$DEPLOY_INFO_FILE"
-          echo "DEPLOY_TIME=$(date -u +"%Y-%m-%dT%H:%M:%SZ")" >> "$DEPLOY_INFO_FILE"
-          echo "STAGE=${{ env.STAGE }}" >> "$DEPLOY_INFO_FILE"
-          echo "AWS_REGION=${{ env.AWS_REGION }}" >> "$DEPLOY_INFO_FILE"
-          echo "ACCOUNT_ID=558793517018" >> "$DEPLOY_INFO_FILE"
-          echo "REPOSITORY_NAME=${REPOSITORY_NAME}" >> "$DEPLOY_INFO_FILE"
-          echo "" >> "$DEPLOY_INFO_FILE"
-          echo "# Deployed Images" >> "$DEPLOY_INFO_FILE"
-          for image_info in "${DEPLOYED_IMAGES[@]}"; do
-              IFS=':' read -r stage uri <<< "$image_info"
-              echo "${stage}=${uri}" >> "$DEPLOY_INFO_FILE"
-          done
-          
-          echo ""
-          echo "💾 배포 정보가 ${DEPLOY_INFO_FILE}에 저장되었습니다."
-
-      # Serverless Framework 버전 확인(디버깅/환경 검증용)
-      - name: Serverless version
-        run: npx serverless --version
-
-      # 실제 배포 단계 — serverless.yml 설정을 기준으로 동적 스테이지에 배포
-      - name: Deploy to AWS (${{ env.STAGE }})
-        run: npx serverless deploy --stage ${{ env.STAGE }}
+  # 4. Serverless Framework로 AWS Lambda 배포
+  deploy-serverless:
+    name: Deploy Serverless
+    needs: [setup-environment, deploy-to-ecr]
+    uses: ./.github/workflows/deploy-serverless.yml
+    with:
+      stage: ${{ github.ref_name == 'prod' && 'prod' || 'dev' }}
+      aws_region: ap-northeast-2
+    secrets:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
