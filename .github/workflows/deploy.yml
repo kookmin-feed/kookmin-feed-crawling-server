@@ -207,15 +207,21 @@ jobs:
           STAGE=$(grep "^STAGE=" "$BUILD_INFO_FILE" | cut -d'=' -f2)
           REPOSITORY_NAME=$(grep "^REPOSITORY_NAME=" "$BUILD_INFO_FILE" | cut -d'=' -f2)
           
-          # BUILT_IMAGES 배열을 직접 파싱
+          # BUILT_IMAGES 배열을 직접 파싱 (Built Images 섹션만)
           BUILT_IMAGES=()
+          in_built_images=false
           while IFS= read -r line; do
-              if [[ "$line" =~ ^[a-zA-Z0-9_-]+=.* ]]; then
+              if [[ "$line" == "# Built Images" ]]; then
+                  in_built_images=true
+                  continue
+              elif [[ "$line" == "" && "$in_built_images" == true ]]; then
+                  break
+              elif [[ "$in_built_images" == true && "$line" =~ ^[a-zA-Z0-9_-]+=.* ]]; then
                   stage=$(echo "$line" | cut -d'=' -f1)
                   tag=$(echo "$line" | cut -d'=' -f2)
                   BUILT_IMAGES+=("${stage}:${tag}")
               fi
-          done < <(grep -E "^[a-zA-Z0-9_-]+=" "$BUILD_INFO_FILE")
+          done < "$BUILD_INFO_FILE"
           
           DEPLOYED_IMAGES=()
           
