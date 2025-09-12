@@ -23,7 +23,7 @@ jobs:
     name: Serverless deploy (${{ github.ref_name }})
     runs-on: ubuntu-latest
     env:
-      STAGE: ${{ github.ref_name }}
+      STAGE: ${{ github.ref_name == 'prod' && 'prod' || 'dev' }}
       AWS_REGION: ap-northeast-2
       TZ: Asia/Seoul
       SLS_TELEMETRY_DISABLED: '1'
