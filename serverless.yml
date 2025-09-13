@@ -44,6 +44,14 @@ package:
     - '!.vscode/**'
     - '!__pycache__/**'
     - '!**/__pycache__/**'
+    - '!scripts/**'
+    - '!Dockerfile'
+    - '!.dockerignore'
+    - '!.github/**'
+    - '!prompt/*.md'
+    - '!.build-info-*.txt'
+    - '!.deploy-info-*.txt'
+    - '!.actrc'
 
 layers:
   ScraperDependencies:
