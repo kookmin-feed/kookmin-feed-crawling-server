@@ -60,3 +60,5 @@ rss_notice_scraper.py
 *.txt
 
 DOCKER_BUILD_AND_TEST_GUIDE.md
+
+html_example/
