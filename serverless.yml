@@ -64,8 +64,8 @@ functions:
       - schedule:
           # AWS EventBridge Scheduler를 사용하도록 명시
           method: scheduler
-          # 월~금, 0800 부터 1940 까지 매 20분 간격 설정
-          rate: cron(0/20 8-19 ? * MON-FRI *)
+          # 월~금, 8시부터 19시까지 1시간 간격 설정
+          rate: cron(0 8-19 ? * MON-FRI *)
           # 한국시간 기준
           timezone: Asia/Seoul
           enabled: true
