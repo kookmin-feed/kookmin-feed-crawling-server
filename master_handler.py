@@ -1,6 +1,8 @@
 import json
 import boto3
 import os
+import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from master_utils import (
     send_master_handler_error_notification,
     load_scraper_types,
@@ -9,6 +11,9 @@ from master_utils import (
     save_scraper_types_to_db,
     find_category_by_scraper_type,
 )
+
+BATCH_SIZE = 10
+MAX_WORKERS = 10
 
 
 def handler(event, context):
@@ -143,46 +148,61 @@ def validate_and_save_scrapers():
 
 
 def invoke_scrapers(valid_scrapers):
-    """유효한 스크래퍼 함수들을 비동기로 호출합니다."""
+    """유효한 스크래퍼 함수들을 10개씩 배치로 병렬 호출합니다."""
 
-    lambda_client = boto3.client("lambda")
     success_count = 0
     error_count = 0
     invocation_results = []
-    print(f"🚀 [MASTER] {len(valid_scrapers)}개 스크래퍼 함수 호출 시작")
 
-    for function_name in valid_scrapers:
+    print(f"🚀 [MASTER] {len(valid_scrapers)}개 스크래퍼를 10개씩 배치로 병렬 실행")
+
+    start_time = time.time()
+
+    def call_single_lambda(function_name):
         try:
-            # 개별 스크래퍼 Lambda 함수 비동기 호출
+            lambda_client = boto3.client("lambda")
             lambda_client.invoke(
                 FunctionName=function_name,
-                InvocationType="Event",  # 비동기 호출
+                InvocationType="Event",
                 Payload=json.dumps({}),
             )
-
-            success_count += 1
-            invocation_results.append(
-                {
-                    "function_name": function_name,
-                    "status": "success",
-                    "message": "비동기 호출 성공",
-                }
-            )
-
+            print(f"   ✅ {function_name} 호출 완료")
+            return {
+                "function_name": function_name,
+                "status": "success",
+                "message": "호출 성공",
+            }
         except Exception as e:
-            error_count += 1
-            error_msg = f"Lambda 함수 {function_name} 호출 실패: {str(e)}"
-            print(f"❌ [INVOKE] {error_msg}")
-            send_master_handler_error_notification(
-                "invoke_lambda", error_msg, f"함수명: {function_name}"
-            )
-            invocation_results.append(
-                {
-                    "function_name": function_name,
-                    "status": "error",
-                    "message": str(e),
-                }
-            )
+            return {
+                "function_name": function_name,
+                "status": "error",
+                "message": str(e),
+            }
+
+    # 45개를 10개씩 나누기
+    batches = [valid_scrapers[i : i + 10] for i in range(0, len(valid_scrapers), 10)]
+
+    for batch_index, batch in enumerate(batches, 1):
+        print(f"🔄 [배치 {batch_index}] {len(batch)}개 스크래퍼 병렬 실행")
+        print(f"   📋 실행 목록: {', '.join(batch)}")
+
+        # 현재 배치를 병렬로 실행
+        with ThreadPoolExecutor(max_workers=10) as executor:
+            batch_results = list(executor.map(call_single_lambda, batch))
+
+        # 결과 집계
+        for result in batch_results:
+            if result["status"] == "success":
+                success_count += 1
+            else:
+                error_count += 1
+            invocation_results.append(result)
+
+        end_time = time.time()
+        exec_time = end_time - start_time
+
+        print(f"✅ [배치 {batch_index}] 완료")
+        print(f"⏱️ [MASTER] 스크래퍼 호출 실행 시간: {exec_time:.4f}초")
 
     return {
         "total_scrapers": len(valid_scrapers),

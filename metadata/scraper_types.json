@@ -314,6 +314,34 @@
             "url": "https://nccoss.kookmin.ac.kr/NCCOSS/community/notice.do",
             "scraper_class_name": "NccossGeneralScraper",
             "scraper_lambda_function_name": "nccoss_general_scraper"
+        },
+        "CLIMATECHANGE_ACADEMIC": {
+            "type_name": "CLIMATECHANGE_ACADEMIC",
+            "korean_name": "기후변화대응사업단 학사공지",
+            "url": "https://cms.kookmin.ac.kr/climatechange/community/notice.do",
+            "scraper_class_name": "ClimatechangeAcademicScraper",
+            "scraper_lambda_function_name": "climatechange_academic_scraper"
+        },
+        "LIBRARY_GENERAL": {
+            "type_name": "LIBRARY_GENERAL",
+            "korean_name": "성곡도서관 일반공지",
+            "url": "https://lib.kookmin.ac.kr/library-guide/notice",
+            "scraper_class_name": "LibraryGeneralScraper",
+            "scraper_lambda_function_name": "library_general_scraper"
+        },
+        "UNIVERSITY_BUKAKPOLITICALFORUM": {
+            "type_name": "UNIVERSITY_BUKAKPOLITICALFORUM",
+            "korean_name": "북악정치포럼 학사공지",
+            "url": "https://www.kookmin.ac.kr/user/kmuNews/specBbs/bugAgForum/index.do",
+            "scraper_class_name": "UniversityBukakPoliticalforumScraper",
+            "scraper_lambda_function_name": "university_bukakpoliticalforum_scraper"
+        },
+        "UNIVERSITY_THURSDAYLECTURE": {
+            "type_name": "UNIVERSITY_THURSDAYLECTURE",
+            "korean_name": "목요특강 학사공지",
+            "url": "https://www.kookmin.ac.kr/user/kmuNews/specBbs/thursdayLecture/index.do",
+            "scraper_class_name": "UniversityThursdaylectureScraper",
+            "scraper_lambda_function_name": "university_thursdaylecture_scraper"
         }
     }
 }

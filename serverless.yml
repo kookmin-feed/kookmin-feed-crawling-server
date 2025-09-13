@@ -18,6 +18,12 @@ provider:
     SLACK_BOT_TOKEN: ${file(envs/config.${self:provider.stage, 'dev'}.json):SLACK_BOT_TOKEN}
     SLACK_CHANNEL_ID: ${file(envs/config.${self:provider.stage, 'dev'}.json):SLACK_CHANNEL_ID}
 
+# Docker 기반 배포를 위한 Custom 설정
+custom:
+  ecrRepositoryName: kookmin-feed-crawling-server
+  accountId: 558793517018
+  libraryGeneralImage: library-general-${self:provider.stage}
+
 package:
   individually: false
   patterns:
@@ -58,8 +64,8 @@ functions:
       - schedule:
           # AWS EventBridge Scheduler를 사용하도록 명시
           method: scheduler
-          # 월~금, 8시 부터 20시 까지 매 20분 간격 설정
-          rate: cron(0/20 8-20 ? * MON-FRI *)
+          # 월~금, 8시부터 19시까지 1시간 간격 설정
+          rate: cron(0 8-19 ? * MON-FRI *)
           # 한국시간 기준
           timezone: Asia/Seoul
           enabled: true
@@ -378,3 +384,32 @@ functions:
     handler: lambda_web_scraper.globalhumanities_chinese_academic_rss_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
+
+  # University Bukak Political Forum 스크래퍼
+  university_bukakpoliticalforum_scraper:
+    name: ${self:provider.stage}-university_bukakpoliticalforum_scraper
+    handler: lambda_web_scraper.university_bukakpoliticalforum_handler.handler
+    layers:
+      - { Ref: ScraperDependenciesLambdaLayer }
+
+  # University Thursday Lecture 스크래퍼
+  university_thursdaylecture_scraper:
+    name: ${self:provider.stage}-university_thursdaylecture_scraper
+    handler: lambda_web_scraper.university_thursdaylecture_handler.handler
+    layers:
+      - { Ref: ScraperDependenciesLambdaLayer }
+
+  # Climate Change Academic 스크래퍼
+  climatechange_academic_scraper:
+    name: ${self:provider.stage}-climatechange_academic_scraper
+    handler: lambda_web_scraper.climatechange_academic_handler.handler
+    layers:
+      - { Ref: ScraperDependenciesLambdaLayer }
+
+  # 🐳 Library General 스크래퍼 (Container Image 사용 - Playwright 지원)
+  library_general_scraper:
+    name: ${self:provider.stage}-library_general_scraper
+    image:
+      uri: ${self:custom.accountId}.dkr.ecr.${self:provider.region}.amazonaws.com/${self:custom.ecrRepositoryName}:${self:custom.libraryGeneralImage}
+    timeout: 60
+    memorySize: 1500

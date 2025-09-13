@@ -6,7 +6,9 @@
                 "UNIVERSITY_ACADEMIC",
                 "UNIVERSITY_SCHOLARSHIP",
                 "UNIVERSITY_SPECIALLECTURE",
-                "UNIVERSITY_CONTESTEVENT"
+                "UNIVERSITY_CONTESTEVENT",
+                "UNIVERSITY_BUKAKPOLITICALFORUM",
+                "UNIVERSITY_THURSDAYLECTURE"
             ]
         },
         "COMPUTERSCIENCE_CATEGORY": {
@@ -65,7 +67,8 @@
             "scraper_types": [
                 "LINC_ACADEMIC",
                 "DORMITORY_GENERAL_RSS",
-                "NCCOSS_GENERAL"
+                "NCCOSS_GENERAL",
+                "CLIMATECHANGE_ACADEMIC"
             ]
         },
         "AUTOMOTIVEENGINEERING_CATEGORY": {
@@ -128,6 +131,12 @@
                 "GLOBALHUMANITIES_ENGLISH_ACADEMIC_RSS",
                 "GLOBALHUMANITIES_CHINESE_ACADEMIC_RSS",
                 "GLOBALHUMANITIES_EURASIAN_ACADEMIC"
+            ]
+        },
+        "LIBRARY_CATEGORY": {
+            "korean_name": "성곡도서관",
+            "scraper_types": [
+                "LIBRARY_GENERAL"
             ]
         }
     }
