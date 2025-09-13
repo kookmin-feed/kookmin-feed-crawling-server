@@ -411,5 +411,5 @@ functions:
     name: ${self:provider.stage}-library_general_scraper
     image:
       uri: ${self:custom.accountId}.dkr.ecr.${self:provider.region}.amazonaws.com/${self:custom.ecrRepositoryName}:${self:custom.libraryGeneralImage}
-    timeout: 60
+    timeout: 120
     memorySize: 1500
