@@ -64,8 +64,8 @@ functions:
       - schedule:
           # AWS EventBridge Scheduler를 사용하도록 명시
           method: scheduler
-          # 월~금, 8시 부터 20시 까지 매 20분 간격 설정
-          rate: cron(0/20 8-20 ? * MON-FRI *)
+          # 월~금, 0800 부터 1940 까지 매 20분 간격 설정
+          rate: cron(0/20 8-19 ? * MON-FRI *)
           # 한국시간 기준
           timezone: Asia/Seoul
           enabled: true
@@ -411,5 +411,5 @@ functions:
     name: ${self:provider.stage}-library_general_scraper
     image:
       uri: ${self:custom.accountId}.dkr.ecr.${self:provider.region}.amazonaws.com/${self:custom.ecrRepositoryName}:${self:custom.libraryGeneralImage}
-    timeout: 120
-    memorySize: 3008
+    timeout: 60
+    memorySize: 1500
