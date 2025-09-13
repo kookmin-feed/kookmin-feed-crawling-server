@@ -420,4 +420,4 @@ functions:
     image:
       uri: ${self:custom.accountId}.dkr.ecr.${self:provider.region}.amazonaws.com/${self:custom.ecrRepositoryName}:${self:custom.libraryGeneralImage}
     timeout: 120
-    memorySize: 1500
+    memorySize: 1536
