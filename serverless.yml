@@ -414,6 +414,13 @@ functions:
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
 
+  # Wevity Contest 스크래퍼
+  wevity_contest_scraper:
+    name: ${self:provider.stage}-wevity_contest_scraper
+    handler: lambda_web_scraper.wevity_contest_handler.handler
+    layers:
+      - { Ref: ScraperDependenciesLambdaLayer }
+
   # 🐳 Library General 스크래퍼 (Container Image 사용 - Playwright 지원)
   library_general_scraper:
     name: ${self:provider.stage}-library_general_scraper

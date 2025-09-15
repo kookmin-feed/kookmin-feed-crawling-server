@@ -342,6 +342,13 @@
             "url": "https://www.kookmin.ac.kr/user/kmuNews/specBbs/thursdayLecture/index.do",
             "scraper_class_name": "UniversityThursdaylectureScraper",
             "scraper_lambda_function_name": "university_thursdaylecture_scraper"
+        },
+        "WEVITY_CONTEST": {
+            "type_name": "WEVITY_CONTEST",
+            "korean_name": "위비티 공모전 공지",
+            "url": "https://www.wevity.com/?c=find&s=1&gub=1&cidx=20&gbn=list",
+            "scraper_class_name": "WevityContestScraper",
+            "scraper_lambda_function_name": "wevity_contest_scraper"
         }
     }
 }
