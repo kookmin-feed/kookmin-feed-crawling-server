@@ -51,3 +51,10 @@ COPY metadata/ ${LAMBDA_TASK_ROOT}/metadata/
 FROM base AS library-general
 COPY lambda_web_scraper/library_general_handler.py ${LAMBDA_TASK_ROOT}/lambda_web_scraper/
 CMD ["lambda_web_scraper.library_general_handler.handler"]
+
+# ====================
+# Stage 3: Wevity Contest Scraper
+# ====================
+FROM base AS wevity-contest
+COPY lambda_web_scraper/wevity_contest_handler.py ${LAMBDA_TASK_ROOT}/lambda_web_scraper/
+CMD ["lambda_web_scraper.wevity_contest_handler.handler"]
