@@ -3,7 +3,14 @@ from datetime import datetime, timedelta
 from typing import Dict, Any
 import pytz
 
-from common_utils import get_recent_notices, save_notices_to_db, send_slack_notification
+from common_utils import (
+    get_recent_notices,
+    save_notices_to_db,
+    send_slack_notification,
+    setup_playwright_browser,
+    get_recent_title_link_sets,
+    is_within_days,
+)
 
 
 def parse_date(date_str: str, kst: pytz.timezone) -> datetime:
@@ -26,38 +33,8 @@ def parse_date(date_str: str, kst: pytz.timezone) -> datetime:
 
 
 def _setup_browser():
-    """브라우저 설정 및 페이지 생성"""
-    from playwright.sync_api import sync_playwright
-
-    p = sync_playwright().start()
-    browser = p.chromium.launch(
-        headless=True,
-        args=[
-            "--no-sandbox",
-            "--disable-setuid-sandbox",
-            "--disable-dev-shm-usage",
-            "--disable-accelerated-2d-canvas",
-            "--no-first-run",
-            "--no-zygote",
-            "--single-process",
-            "--disable-gpu",
-            "--disable-background-timer-throttling",
-            "--disable-backgrounding-occluded-windows",
-            "--disable-renderer-backgrounding",
-            "--disable-web-security",
-            "--disable-features=TranslateUI",
-            "--disable-extensions",
-        ],
-    )
-
-    page = browser.new_page()
-    page.set_extra_http_headers(
-        {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
-        }
-    )
-
-    return p, browser, page
+    """브라우저 설정 및 페이지 생성 (공통 유틸 사용)"""
+    return setup_playwright_browser()
 
 
 def _navigate_to_main_page(page, url):
@@ -164,13 +141,8 @@ def _process_single_contest(item, index, recent_titles, recent_links, kst):
 
         contest_data = _create_contest_data(title, link, published)
 
-        # 30일 이내 필터링 (published 기준)
-        thirty_days_ago = datetime.now(kst) - timedelta(days=30)
-        published_date = datetime.fromisoformat(
-            contest_data["published"].replace("Z", "+00:00")
-        )
-
-        if published_date >= thirty_days_ago:
+        # 30일 이내 필터링 (공통 유틸 사용)
+        if is_within_days(contest_data["published"], 30, kst):
             print(f"🆕 [SCRAPER] 새로운 공모전 추가: {title[:30]}...")
             return contest_data
         else:
@@ -206,10 +178,10 @@ def scrape_wevity_contest() -> Dict[str, Any]:
                     "error": "공모전 항목을 찾을 수 없음",
                 }
 
-            # 기존 공모전 확인
-            recent_notices = get_recent_notices("wevity_contest")
-            recent_links = {notice.get("link") for notice in recent_notices}
-            recent_titles = {notice.get("title") for notice in recent_notices}
+            # 기존 공모전 확인 (공통 유틸 사용)
+            recent_titles, recent_links, recent_notices = get_recent_title_link_sets(
+                "wevity_contest"
+            )
             print(f"📋 [DB] 기존 공모전 수: {len(recent_notices)}")
 
             # 각 공모전 처리

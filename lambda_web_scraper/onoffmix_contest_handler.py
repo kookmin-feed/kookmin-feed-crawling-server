@@ -3,7 +3,14 @@ from datetime import datetime, timedelta
 from typing import Dict, Any, Optional, Tuple, List
 import pytz
 
-from common_utils import get_recent_notices, save_notices_to_db, send_slack_notification
+from common_utils import (
+    get_recent_notices,
+    save_notices_to_db,
+    send_slack_notification,
+    setup_playwright_browser,
+    get_recent_title_link_sets,
+    is_within_days,
+)
 
 
 def parse_deadline_text(deadline_text: str, kst: pytz.timezone) -> datetime:
@@ -34,37 +41,7 @@ def parse_deadline_text(deadline_text: str, kst: pytz.timezone) -> datetime:
 
 
 def _setup_browser() -> Tuple[Any, Any, Any]:
-    from playwright.sync_api import sync_playwright
-
-    p = sync_playwright().start()
-    browser = p.chromium.launch(
-        headless=True,
-        args=[
-            "--no-sandbox",
-            "--disable-setuid-sandbox",
-            "--disable-dev-shm-usage",
-            "--disable-accelerated-2d-canvas",
-            "--no-first-run",
-            "--no-zygote",
-            "--single-process",
-            "--disable-gpu",
-            "--disable-background-timer-throttling",
-            "--disable-backgrounding-occluded-windows",
-            "--disable-renderer-backgrounding",
-            "--disable-web-security",
-            "--disable-features=TranslateUI",
-            "--disable-extensions",
-        ],
-    )
-
-    page = browser.new_page()
-    page.set_extra_http_headers(
-        {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
-        }
-    )
-
-    return p, browser, page
+    return setup_playwright_browser()
 
 
 def _navigate_to_main_page(page: Any, url: str) -> None:
@@ -207,11 +184,7 @@ def _process_single_event(
 
         notice = _create_notice_data(title, link, published)
 
-        thirty_days_ago = datetime.now(kst) - timedelta(days=30)
-        published_date = datetime.fromisoformat(
-            notice["published"].replace("Z", "+00:00")
-        )
-        if published_date >= thirty_days_ago:
+        if is_within_days(notice["published"], 30, kst):
             print(f"🆕 [SCRAPER] 새로운 이벤트 추가: {title[:30]}...")
             return notice
         else:
@@ -239,7 +212,7 @@ def scrape_onoffmix_contest() -> Dict[str, Any]:
                 print("❌ [SCRAPER] 이벤트 항목을 찾을 수 없음")
                 return {"success": False, "error": "이벤트 항목을 찾을 수 없음"}
 
-            recent = get_recent_notices("onoffmix_contest")
+            _, _, recent = get_recent_title_link_sets("onoffmix_contest")
             recent_links = {n.get("link") for n in recent}
             recent_titles = {n.get("title") for n in recent}
             print(f"📋 [DB] 기존 온오프믹스 공모전 수: {len(recent)}")
