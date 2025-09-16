@@ -68,9 +68,9 @@ def _navigate_to_main_page(page, url):
 
 
 def _get_contest_items(page):
-    """공모전 항목들을 가져오기 (최신 10개만)"""
+    """공모전 항목들을 가져오기 (최신 20개만)"""
     items = page.query_selector_all("ul.list li:not(.top)")
-    items = items[:10]
+    items = items[:20]
     print(f"📊 [SCRAPER] 발견된 공모전 수: {len(items)} (최신 10개만 처리)")
     return items
 
@@ -186,7 +186,7 @@ def scrape_wevity_contest() -> Dict[str, Any]:
     """
     위비티 공모전을 스크래핑하고 새로운 공모전을 처리 (Playwright 기반)
     """
-    url = "https://www.wevity.com/?c=find&s=1&gub=1&cidx=20&gbn=list"
+    url = "https://www.wevity.com/?c=find&s=1&gub=1"
     kst = pytz.timezone("Asia/Seoul")
 
     print(f"🌐 [SCRAPER] 스크래핑 시작 - URL: {url}")
