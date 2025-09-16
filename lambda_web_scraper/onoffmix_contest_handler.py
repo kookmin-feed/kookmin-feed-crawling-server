@@ -57,6 +57,17 @@ def _get_event_items(page: Any) -> List[Any]:
     return items
 
 
+def _is_ad_item(item: Any) -> bool:
+    """
+    광고 공고는 `article.event_area.event_main.adv_list` 클래스를 가짐.
+    해당 항목은 스크래핑 대상에서 제외한다.
+    """
+    try:
+        return item.query_selector("article.event_area.event_main.adv_list") is not None
+    except Exception:
+        return False
+
+
 def _is_ended(item: Any) -> bool:
     # 활성 상태가 명시된 경우 우선적으로 종료 아님 처리
     try:
@@ -153,6 +164,10 @@ def _process_single_event(
 ) -> Optional[Dict[str, Any]]:
     try:
         print(f"🔍 [SCRAPER] 이벤트 {index+1} 처리 시작")
+
+        if _is_ad_item(item):
+            print(f"🪧 [SCRAPER] 광고 항목 (스킵): index={index+1}")
+            return None
 
         if _is_ended(item):
             print(f"⛔ [SCRAPER] 종료된 이벤트 (스킵): index={index+1}")
