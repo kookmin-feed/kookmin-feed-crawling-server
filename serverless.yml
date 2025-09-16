@@ -23,6 +23,7 @@ custom:
   ecrRepositoryName: kookmin-feed-crawling-server
   accountId: 558793517018
   libraryGeneralImage: library-general-${self:provider.stage}
+  wevityContestImage: wevity-contest-${self:provider.stage}
 
 package:
   individually: false
@@ -413,6 +414,14 @@ functions:
     handler: lambda_web_scraper.climatechange_academic_handler.handler
     layers:
       - { Ref: ScraperDependenciesLambdaLayer }
+
+  # 🐳 Wevity Contest 스크래퍼 (Container Image 사용 - Playwright 지원)
+  wevity_contest_scraper:
+    name: ${self:provider.stage}-wevity_contest_scraper
+    image:
+      uri: ${self:custom.accountId}.dkr.ecr.${self:provider.region}.amazonaws.com/${self:custom.ecrRepositoryName}:${self:custom.wevityContestImage}
+    timeout: 120
+    memorySize: 1536
 
   # 🐳 Library General 스크래퍼 (Container Image 사용 - Playwright 지원)
   library_general_scraper:
