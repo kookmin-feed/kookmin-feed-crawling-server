@@ -24,6 +24,7 @@ custom:
   accountId: 558793517018
   libraryGeneralImage: library-general-${self:provider.stage}
   wevityContestImage: wevity-contest-${self:provider.stage}
+  onoffmixContestImage: onoffmix-contest-${self:provider.stage}
 
 package:
   individually: false
@@ -428,5 +429,13 @@ functions:
     name: ${self:provider.stage}-library_general_scraper
     image:
       uri: ${self:custom.accountId}.dkr.ecr.${self:provider.region}.amazonaws.com/${self:custom.ecrRepositoryName}:${self:custom.libraryGeneralImage}
+    timeout: 120
+    memorySize: 1536
+
+  # 🐳 Onoffmix Contest 스크래퍼 (Container Image 사용 - Playwright 지원)
+  onoffmix_contest_scraper:
+    name: ${self:provider.stage}-onoffmix_contest_scraper
+    image:
+      uri: ${self:custom.accountId}.dkr.ecr.${self:provider.region}.amazonaws.com/${self:custom.ecrRepositoryName}:${self:custom.onoffmixContestImage}
     timeout: 120
     memorySize: 1536

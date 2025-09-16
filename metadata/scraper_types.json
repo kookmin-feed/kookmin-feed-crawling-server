@@ -343,6 +343,13 @@
             "scraper_class_name": "UniversityThursdaylectureScraper",
             "scraper_lambda_function_name": "university_thursdaylecture_scraper"
         },
+        "ONOFFMIX_CONTEST": {
+            "type_name": "ONOFFMIX_CONTEST",
+            "korean_name": "온오프믹스 공모전 공지",
+            "url": "https://onoffmix.com/event/main/?c=105",
+            "scraper_class_name": "OnoffmixContestScraper",
+            "scraper_lambda_function_name": "onoffmix_contest_scraper"
+        },
         "WEVITY_CONTEST": {
             "type_name": "WEVITY_CONTEST",
             "korean_name": "위비티 공모전 공지",

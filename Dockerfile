@@ -58,3 +58,10 @@ CMD ["lambda_web_scraper.library_general_handler.handler"]
 FROM base AS wevity-contest
 COPY lambda_web_scraper/wevity_contest_handler.py ${LAMBDA_TASK_ROOT}/lambda_web_scraper/
 CMD ["lambda_web_scraper.wevity_contest_handler.handler"]
+
+# ====================
+# Stage 4: Onoffmix Contest Scraper
+# ====================
+FROM base AS onoffmix-contest
+COPY lambda_web_scraper/onoffmix_contest_handler.py ${LAMBDA_TASK_ROOT}/lambda_web_scraper/
+CMD ["lambda_web_scraper.onoffmix_contest_handler.handler"]
