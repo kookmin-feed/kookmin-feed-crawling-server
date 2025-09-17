@@ -3,7 +3,14 @@ from datetime import datetime, timedelta
 from typing import Dict, Any
 import pytz
 
-from common_utils import get_recent_notices, save_notices_to_db, send_slack_notification
+from common_utils import (
+    get_recent_notices,
+    save_notices_to_db,
+    send_slack_notification,
+    setup_playwright_browser,
+    get_recent_title_link_sets,
+    is_within_days,
+)
 
 
 def parse_date(date_str: str, kst: pytz.timezone) -> datetime:
@@ -28,38 +35,8 @@ def parse_date(date_str: str, kst: pytz.timezone) -> datetime:
 
 
 def _setup_browser():
-    """브라우저 설정 및 페이지 생성"""
-    from playwright.sync_api import sync_playwright
-
-    p = sync_playwright().start()
-    browser = p.chromium.launch(
-        headless=True,
-        args=[
-            "--no-sandbox",
-            "--disable-setuid-sandbox",
-            "--disable-dev-shm-usage",
-            "--disable-accelerated-2d-canvas",
-            "--no-first-run",
-            "--no-zygote",
-            "--single-process",
-            "--disable-gpu",
-            "--disable-background-timer-throttling",
-            "--disable-backgrounding-occluded-windows",
-            "--disable-renderer-backgrounding",
-            "--disable-web-security",
-            "--disable-features=TranslateUI",
-            "--disable-extensions",
-        ],
-    )
-
-    page = browser.new_page()
-    page.set_extra_http_headers(
-        {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
-        }
-    )
-
-    return p, browser, page
+    """브라우저 설정 및 페이지 생성 (공통 유틸 사용)"""
+    return setup_playwright_browser()
 
 
 def _navigate_to_main_page(page, url):
@@ -160,13 +137,8 @@ def _process_single_notice(page, row, index, url, recent_titles, recent_links, k
             published = _extract_date_from_detail_page(page, kst)
             notice_data = _create_notice_data(title, actual_link, published)
 
-            # 30일 이내 필터링
-            thirty_days_ago = datetime.now(kst) - timedelta(days=30)
-            published_date = datetime.fromisoformat(
-                notice_data["published"].replace("Z", "+00:00")
-            )
-
-            if published_date >= thirty_days_ago:
+            # 30일 이내 필터링 (공통 유틸 사용)
+            if is_within_days(notice_data["published"], 30, kst):
                 print(f"🆕 [SCRAPER] 새로운 공지사항 추가: {title[:30]}...")
                 return notice_data
             else:
@@ -227,10 +199,10 @@ def scrape_library_general() -> Dict[str, Any]:
                     "body": {"message": "공지사항을 찾을 수 없음"},
                 }
 
-            # 기존 공지사항 확인
-            recent_notices = get_recent_notices("library_general")
-            recent_links = {notice.get("link") for notice in recent_notices}
-            recent_titles = {notice.get("title") for notice in recent_notices}
+            # 기존 공지사항 확인 (공통 유틸 사용)
+            recent_titles, recent_links, recent_notices = get_recent_title_link_sets(
+                "library_general"
+            )
             print(f"📋 [DB] 기존 공지사항 수: {len(recent_notices)}")
 
             # 각 공지사항 처리

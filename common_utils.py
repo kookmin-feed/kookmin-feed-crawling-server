@@ -178,3 +178,82 @@ def send_common_utils_error_notification(
         message += f"\n*추가 정보:* {additional_info}"
 
     return send_slack_notification(message, f"common_utils_{method_name}")
+
+
+# ===== 공통 스크래핑 유틸 =====
+def setup_playwright_browser():
+    """Playwright 브라우저/페이지 공통 설정"""
+    try:
+        from playwright.sync_api import sync_playwright
+
+        p = sync_playwright().start()
+        browser = p.chromium.launch(
+            headless=True,
+            args=[
+                "--no-sandbox",
+                "--disable-setuid-sandbox",
+                "--disable-dev-shm-usage",
+                "--disable-accelerated-2d-canvas",
+                "--no-first-run",
+                "--no-zygote",
+                "--single-process",
+                "--disable-gpu",
+                "--disable-background-timer-throttling",
+                "--disable-backgrounding-occluded-windows",
+                "--disable-renderer-backgrounding",
+                "--disable-web-security",
+                "--disable-features=TranslateUI",
+                "--disable-extensions",
+            ],
+        )
+
+        page = browser.new_page()
+        page.set_extra_http_headers(
+            {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+            }
+        )
+
+        return p, browser, page
+    except Exception as e:
+        error_msg = f"Playwright 브라우저 설정 실패: {e}"
+        print(f"❌ [SCRAPER] {error_msg}")
+        raise
+
+
+def get_recent_title_link_sets(collection_name: str):
+    """최근 공지에서 제목/링크 세트와 원본 리스트를 함께 반환"""
+    recent = get_recent_notices(collection_name)
+    recent_titles = {n.get("title") for n in recent}
+    recent_links = {n.get("link") for n in recent}
+    return recent_titles, recent_links, recent
+
+
+def _parse_iso_datetime(dt_str: str) -> datetime:
+    """ISO 문자열을 datetime으로 안전하게 파싱 (Z 처리 포함)"""
+    try:
+        if not dt_str:
+            return datetime.now()
+        normalized = dt_str.replace("Z", "+00:00")
+        return datetime.fromisoformat(normalized)
+    except Exception:
+        return datetime.now()
+
+
+def is_within_days(published_iso_str: str, days: int, tz) -> bool:
+    """발행일이 최근 N일 이내인지 여부"""
+    try:
+        published_dt = _parse_iso_datetime(published_iso_str)
+        if tz is not None and published_dt.tzinfo is None:
+            # naive -> 지정된 타임존 로컬라이즈
+            try:
+                published_dt = tz.localize(published_dt)
+            except Exception:
+                pass
+        threshold = (
+            datetime.now(tz) if tz is not None else datetime.now()
+        ) - timedelta(days=days)
+        return published_dt >= threshold
+    except Exception:
+        # 파싱 오류 시 보수적으로 포함 처리
+        return True

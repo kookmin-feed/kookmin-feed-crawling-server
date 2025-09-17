@@ -142,7 +142,9 @@
         "OFFCAMPUS_CONTEST_CATEGORY": {
             "korean_name": "외부 대회 및 공모전",
             "scraper_types": [
-                "WEVITY_CONTEST"
+                "WEVITY_CONTEST",
+                "ONOFFMIX_CONTEST",
+                "ONOFFMIX_HACKATHON"
             ]
         }
     }
