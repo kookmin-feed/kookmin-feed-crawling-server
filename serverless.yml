@@ -26,6 +26,10 @@ custom:
   wevityContestImage: wevity-contest-${self:provider.stage}
   onoffmixContestImage: onoffmix-contest-${self:provider.stage}
   onoffmixHackathonImage: onoffmix-hackathon-${self:provider.stage}
+  # 환경별 스케줄 설정
+  scheduleRate:
+    dev: cron(30 8-19 ? * MON-FRI *)  # dev: 30분에 실행 (08:30, 09:30, ...)
+    prod: cron(0 8-19 ? * MON-FRI *)  # prod: 정시에 실행 (08:00, 09:00, ...)
 
 package:
   individually: false
@@ -75,8 +79,9 @@ functions:
       - schedule:
           # AWS EventBridge Scheduler를 사용하도록 명시
           method: scheduler
-          # 월~금, 8시부터 19시까지 1시간 간격 설정
-          rate: cron(0 8-19 ? * MON-FRI *)
+          # dev 환경: 월~금, 8시부터 19시까지 30분에 1시간 간격 실행 (08:30, 09:30, ...)
+          # prod 환경: 월~금, 8시부터 19시까지 정시에 1시간 간격 실행 (08:00, 09:00, ...)
+          rate: ${self:custom.scheduleRate.${self:provider.stage}}
           # 한국시간 기준
           timezone: Asia/Seoul
           enabled: true
