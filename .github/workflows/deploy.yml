@@ -74,7 +74,7 @@ jobs:
             "MONGODB_URI": "${{ secrets.PROD_MONGODB_URI }}",
             "DB_NAME": "${{ secrets.PROD_DB_NAME }}",
             "SLACK_BOT_TOKEN": "${{ secrets.SLACK_BOT_TOKEN }}",
-            "SLACK_CHANNEL_ID": "${{ secrets.SLACK_CHANNEL_ID }}"
+            "SLACK_CHANNEL_ID": "${{ secrets.PROD_SLACK_CHANNEL_ID }}"
           }
           JSON
 
