@@ -18,14 +18,6 @@ provider:
     SLACK_BOT_TOKEN: ${file(envs/config.${self:provider.stage, 'dev'}.json):SLACK_BOT_TOKEN}
     SLACK_CHANNEL_ID: ${file(envs/config.${self:provider.stage, 'dev'}.json):SLACK_CHANNEL_ID}
 
-# Lambda VPC 설정 (VPC: vpc-0af69be7cf2c15659)
-  vpc:
-    securityGroupIds:
-      - sg-081a8f3782b1852fd
-    subnetIds:
-      - subnet-06d4ad5dac8699127
-      - subnet-0c5864a299b2af5b2
-
 # Docker 기반 배포를 위한 Custom 설정
 custom:
   ecrRepositoryName: kookmin-feed-crawling-server
