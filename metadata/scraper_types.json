@@ -136,7 +136,7 @@
         "SCIENCETECHNOLOGY_CHEMISTRY_ACADEMIC": {
             "type_name": "SCIENCETECHNOLOGY_CHEMISTRY_ACADEMIC",
             "korean_name": "응용화학부 학사공지",
-            "url": "http://chem.kookmin.ac.kr/sub6/menu1.php",
+            "url": "https://chem.kookmin.ac.kr/chem/community/notice001.do",
             "scraper_class_name": "SciencetechnologyChemistryAcademicScraper",
             "scraper_lambda_function_name": "sciencetechnology_chemistry_academic_scraper"
         },
