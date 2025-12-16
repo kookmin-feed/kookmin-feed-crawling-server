@@ -39,7 +39,7 @@ def scrape_sciencetechnology_chemistry_academic() -> Dict[str, Any]:
     응용화학부 학사공지를 스크래핑하고 새로운 공지사항을 처리
     """
 
-    url = "http://chem.kookmin.ac.kr/sub6/menu1.php"
+    url = "https://chem.kookmin.ac.kr/chem/community/notice001.do"
     kst = pytz.timezone("Asia/Seoul")
 
     print(f"🌐 [SCRAPER] 스크래핑 시작 - URL: {url}")
@@ -49,14 +49,12 @@ def scrape_sciencetechnology_chemistry_academic() -> Dict[str, Any]:
         soup = fetch_page(url)
 
         # 공지사항 목록 요소들 가져오기
-        table = soup.select_one("div#ezsBBS table")
+        table = soup.select_one("table.board-table")
         if not table:
             print("❌ [SCRAPER] 테이블을 찾을 수 없습니다")
             return {"success": False, "error": "테이블을 찾을 수 없습니다"}
 
-        elements = table.select("tr")
-        # 헤더 행을 제외한 모든 행
-        elements = elements[1:] if len(elements) > 1 else []
+        elements = table.select("tbody tr")
         print(f"📊 [SCRAPER] 발견된 공지사항 수: {len(elements)}")
 
         # 기존 공지사항 확인 (MongoDB에서)
@@ -124,36 +122,90 @@ def parse_notice_from_element(element, kst, base_url) -> Dict[str, Any]:
 
     try:
         # 제목과 링크 추출
-        title_link = element.select_one("td ul li a.Board")
-        if not title_link:
+        title_td = element.select_one("td.b-td-left")
+        if not title_td:
             return None
 
-        title = title_link.text.strip()
-        relative_link = title_link.get("href", "")
+        title_box = title_td.select_one("div.b-title-box")
+        if not title_box:
+            return None
 
-        # 상대 경로를 절대 경로로 변환
-        if relative_link.startswith("/"):
-            link = f"http://chem.kookmin.ac.kr{relative_link}"
+        a_tag = title_box.select_one("a")
+        if not a_tag:
+            return None
+
+        # title 속성에서 제목 추출 (자세히 보기 텍스트 제거)
+        title_attr = a_tag.get("title", "")
+        if title_attr:
+            title = title_attr.replace(" 자세히 보기", "").strip()
         else:
-            link = f"http://chem.kookmin.ac.kr/sub6/{relative_link}"
+            # title 속성이 없으면 텍스트 콘텐츠 사용
+            title = a_tag.text.strip()
 
-        # 날짜 추출
-        date_cells = element.select("td.txtc.txtN")
-        if len(date_cells) >= 3:  # 번호, 날짜, 조회수 순서로 있을 것으로 예상
-            date_str = date_cells[1].text.strip()
+        relative_link = a_tag.get("href", "")
+
+        # URL 파라미터 형식 확인 및 절대 경로 생성
+        if relative_link.startswith("?"):
+            link = f"{base_url}{relative_link}"
+        elif relative_link.startswith("/"):
+            link = f"https://chem.kookmin.ac.kr{relative_link}"
+        else:
+            link = f"https://chem.kookmin.ac.kr/{relative_link}"
+
+        # 날짜 추출 - span.b-date에서 YY.MM.DD 형식 또는 테이블 셀에서 YYYY-MM-DD 형식
+        date_span = element.select_one("span.b-date")
+        if date_span:
+            date_text = date_span.text.strip()
             try:
-                published = datetime.strptime(date_str, "%Y-%m-%d").replace(tzinfo=kst)
+                # YY.MM.DD 형식 처리 (예: 25.12.15 -> 2025-12-15)
+                if "." in date_text and len(date_text.split(".")) == 3:
+                    year, month, day = date_text.split(".")
+                    year_full = f"20{year}" if len(year) == 2 else year
+                    date_str = f"{year_full}-{month}-{day}"
+                    published = datetime.strptime(date_str, "%Y-%m-%d").replace(
+                        tzinfo=kst
+                    )
+                else:
+                    # YYYY-MM-DD 형식
+                    published = datetime.strptime(date_text, "%Y-%m-%d").replace(
+                        tzinfo=kst
+                    )
             except ValueError:
                 try:
-                    published = datetime.strptime(date_str, "%Y.%m.%d").replace(
+                    # YYYY.MM.DD 형식 시도
+                    published = datetime.strptime(date_text, "%Y.%m.%d").replace(
+                        tzinfo=kst
+                    )
+                except ValueError:
+                    print(f"❌ [PARSE] 날짜 파싱 오류: {date_text}")
+                    published = datetime.now(kst)
+        else:
+            # span.b-date가 없으면 테이블 셀에서 YYYY-MM-DD 형식 찾기
+            date_cells = element.select("td")
+            date_str = None
+            for cell in date_cells:
+                cell_text = cell.text.strip()
+                # YYYY-MM-DD 형식 확인
+                if len(cell_text) == 10 and cell_text.count("-") == 2:
+                    try:
+                        # 날짜 형식인지 확인
+                        datetime.strptime(cell_text, "%Y-%m-%d")
+                        date_str = cell_text
+                        break
+                    except ValueError:
+                        continue
+
+            if date_str:
+                try:
+                    published = datetime.strptime(date_str, "%Y-%m-%d").replace(
                         tzinfo=kst
                     )
                 except ValueError:
                     print(f"❌ [PARSE] 날짜 파싱 오류: {date_str}")
                     published = datetime.now(kst)
-        else:
-            print("⚠️ [PARSE] 날짜 요소를 찾을 수 없음")
-            published = datetime.now(kst)
+            else:
+                print("⚠️ [PARSE] 날짜 요소를 찾을 수 없음")
+                published = datetime.now(kst)
 
         result = {
             "title": title,
