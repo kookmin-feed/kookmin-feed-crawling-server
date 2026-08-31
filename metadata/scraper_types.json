@@ -363,6 +363,20 @@
             "url": "https://www.wevity.com/?c=find&s=1&gub=1&cidx=20&gbn=list",
             "scraper_class_name": "WevityContestScraper",
             "scraper_lambda_function_name": "wevity_contest_scraper"
+        },
+        "GRADUATE_TOTALNOTICE_RSS": {
+            "type_name": "GRADUATE_TOTALNOTICE_RSS",
+            "korean_name": "대학원 전체공지",
+            "url": "https://gds.kookmin.ac.kr/information/notice/rss",
+            "scraper_class_name": "RSSNoticeScraper",
+            "scraper_lambda_function_name": "graduate_totalnotice_rss_scraper"
+        },
+        "GRADUATE_TOTALACADEMIC_RSS": {
+            "type_name": "GRADUATE_TOTALACADEMIC_RSS",
+            "korean_name": "대학원 전체학과게시판공지",
+            "url": "https://gds.kookmin.ac.kr/information/epartmentnotice/rss",
+            "scraper_class_name": "RSSNoticeScraper",
+            "scraper_lambda_function_name": "graduate_totalacademic_rss_scraper"
         }
     }
 }

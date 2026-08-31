@@ -146,6 +146,13 @@
                 "ONOFFMIX_CONTEST",
                 "ONOFFMIX_HACKATHON"
             ]
+        },
+        "GRADUATE_CATEGORY": {
+            "korean_name": "대학원",
+            "scraper_types": [
+                "GRADUATE_TOTALNOTICE_RSS",
+                "GRADUATE_TOTALACADEMIC_RSS"
+            ]
         }
     }
 }
